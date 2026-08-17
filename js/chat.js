@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Chat — 聊天核心模块
  * 消息气泡 / 流式回复 / 会话管理 / Markdown / 消息操作
  */
@@ -177,7 +177,27 @@ export async function renderChat(container) {
           </button>
         </div>
         <div class="chat-messages" id="chat-messages"></div>
-        <div class="kaomoji-suggest hidden" id="kaomoji-suggest"></div>
+        <div class="emoji-panel hidden" id="emoji-panel">
+          <div class="emoji-tabs">
+            <button class="emoji-tab active" data-etab="emoji">Emoji</button>
+            <button class="emoji-tab" data-etab="kaomoji">颜文字</button>
+            <button class="emoji-tab" data-etab="sticker">表情包</button>
+          </div>
+          <div class="emoji-content" id="emoji-content">
+            <!-- Emoji tab -->
+            <div class="emoji-grid" id="emoji-grid-emoji">
+              ${["😀","😂","🥹","😍","🥰","😘","😊","🤗","🤔","😏","😢","😭","😤","😡","🥺","😳","🤭","😴","🤮","👻","💀","🤡","👽","🫶","❤️","🔥","💔","✨","🎉","👍","👎","🙏","💪","🤝","👋","✌️","🫰","👀","🧠","💬","📸","🎵","🌙","☀️","🌈","🍑","🍓","🧸","🐱","🐶"].map(e => `<button class="emoji-item" data-val="${e}">${e}</button>`).join("")}
+            </div>
+            <!-- 颜文字 tab -->
+            <div class="emoji-grid hidden" id="emoji-grid-kaomoji"></div>
+            <!-- 表情包 tab -->
+            <div class="emoji-sticker-tab hidden" id="emoji-grid-sticker">
+              <div class="sticker-search-wrap"><input type="text" class="sticker-search" id="sticker-search" placeholder="Search stickers..." /></div>
+              <div class="sticker-grid" id="sticker-grid"><div class="empty-hint">No stickers yet</div></div>
+              <button class="settings-btn" id="add-sticker-btn">+ Add Stickers</button>
+            </div>
+          </div>
+        </div>
         <div class="chat-input-area">
           <div class="chat-input-row1">
             <div class="chat-input-wrap"><textarea class="chat-input" id="chat-input" placeholder="输入消息..." rows="1"></textarea></div>
@@ -984,20 +1004,52 @@ function bindChatEvents(container) {
     alert("语音消息 - Coming soon!");
   });
 
-  // Emoji button toggle
+  // Emoji panel toggle
   container.querySelector("#chat-emoji-btn")?.addEventListener("click", () => {
-    const suggest = container.querySelector("#kaomoji-suggest");
-    if (suggest) {
-      if (suggest.classList.contains("hidden")) {
-        const allKaomoji = Object.entries(KAOMOJI).flatMap(([k, list]) => list.map(v => ({ keyword: k, kaomoji: v })));
-        suggest.innerHTML = allKaomoji.slice(0, 20).map(m =>
-          `<button class="kaomoji-item" data-val="${m.kaomoji.replace(/"/g, '&quot;')}">${m.kaomoji}</button>`
-        ).join("");
-        suggest.classList.remove("hidden");
-      } else {
-        suggest.classList.add("hidden");
+    const panel = container.querySelector("#emoji-panel");
+    if (!panel) return;
+    panel.classList.toggle("hidden");
+    container.querySelector("#chat-plus-menu")?.classList.add("hidden");
+    // 初始化颜文字 tab 内容
+    const kaoGrid = container.querySelector("#emoji-grid-kaomoji");
+    if (kaoGrid && !kaoGrid.dataset.init) {
+      kaoGrid.dataset.init = "1";
+      let html = "";
+      for (const [cat, list] of Object.entries(KAOMOJI)) {
+        html += `<div class="kaomoji-cat">${cat}</div>`;
+        html += list.map(k => `<button class="kaomoji-item" data-val="${k.replace(/"/g, '&quot;')}">${k}</button>`).join("");
       }
+      kaoGrid.innerHTML = html;
     }
+  });
+
+  // Emoji panel tab switching
+  container.querySelector(".emoji-tabs")?.addEventListener("click", (e) => {
+    const tab = e.target.closest(".emoji-tab");
+    if (!tab) return;
+    const tabName = tab.dataset.etab;
+    container.querySelectorAll(".emoji-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    container.querySelector("#emoji-grid-emoji")?.classList.toggle("hidden", tabName !== "emoji");
+    container.querySelector("#emoji-grid-kaomoji")?.classList.toggle("hidden", tabName !== "kaomoji");
+    container.querySelector("#emoji-grid-sticker")?.classList.toggle("hidden", tabName !== "sticker");
+  });
+
+  // Emoji/kaomoji item click → insert into input
+  container.querySelector("#emoji-panel")?.addEventListener("click", (e) => {
+    const item = e.target.closest(".emoji-item, .kaomoji-item");
+    if (!item) return;
+    const val = item.dataset.val;
+    const input = container.querySelector("#chat-input");
+    if (input && val) {
+      input.value += val;
+      input.focus();
+    }
+  });
+
+  // Sticker add button
+  container.querySelector("#add-sticker-btn")?.addEventListener("click", () => {
+    alert("表情包管理 - Coming soon!");
   });
 
   // Plus menu items - coming soon handler
