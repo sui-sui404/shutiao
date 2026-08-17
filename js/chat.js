@@ -21,6 +21,7 @@ import {
 } from "./db.js";
 import { createSession, createMessage } from "./models.js";
 import { chatStream } from "./api.js";
+import { getActivePresetId, getBuiltinPreset } from "./presets.js";
 import { buildCharacterPrompt } from "./character.js";
 
 /* ── 颜文字/表情 快捷输入 ── */
@@ -66,10 +67,10 @@ export async function renderChat(container) {
           <div class="contacts-list" id="contacts-list"><div class="empty-hint">还没有联系人，点 + 创建角色</div></div>
         </div>
 
-        <!-- Moments View -->
+                <!-- Moments View -->
         <div class="chat-moments-view hidden" id="chat-moments-view">
           <div class="contacts-header">
-            <span class="contacts-title">朋友圈</span>
+            <span class="contacts-title">Moments</span>
             <button class="chat-new-btn" id="moments-camera-btn">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             </button>
@@ -83,13 +84,27 @@ export async function renderChat(container) {
                 </div>
               </div>
             </div>
-            <div class="moments-feed">
-              <div class="empty-hint" style="padding:40px 0;text-align:center">还没有动态</div>
+            <!-- Post Creation Form (hidden by default) -->
+            <div class="moments-post-form hidden" id="moments-post-form">
+              <textarea class="field-input field-textarea" id="moments-post-text" placeholder="Share something..." rows="3"></textarea>
+              <div class="moments-post-images" id="moments-post-images"></div>
+              <div class="moments-post-actions">
+                <button class="settings-btn" id="moments-add-image-btn">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  Photo
+                </button>
+                <div style="flex:1"></div>
+                <button class="settings-btn" id="moments-cancel-post">Cancel</button>
+                <button class="settings-btn primary" id="moments-submit-post">Post</button>
+              </div>
+            </div>
+            <div class="moments-feed" id="moments-feed">
+              <div class="empty-hint" style="padding:40px 0;text-align:center">No moments yet</div>
             </div>
           </div>
         </div>
 
-        <!-- Me View -->
+                <!-- Me View -->
         <div class="chat-me-view hidden" id="chat-me-view">
           <div class="me-scroll">
             <div class="me-profile-card">
@@ -103,29 +118,52 @@ export async function renderChat(container) {
               <svg class="me-profile-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
 
-            <div class="me-menu-section">
-              <div class="me-menu-item" data-action="favorites">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                <span class="me-menu-label">Favorites</span>
-                <svg class="me-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+            <!-- Mask Management Section -->
+            <div class="me-section">
+              <div class="me-section-header">
+                <span class="me-section-title">Masks</span>
+                <button class="chat-new-btn" id="add-mask-btn">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
               </div>
-              <div class="me-menu-item" data-action="album">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                <span class="me-menu-label">Album</span>
-                <svg class="me-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+              <div class="me-mask-list" id="me-mask-list">
+                <div class="empty-hint">No masks yet. Create one to use different identities.</div>
               </div>
             </div>
 
-            <div class="me-menu-section">
-              <div class="me-menu-item" data-action="settings" id="me-settings-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1.08 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1.08z"/></svg>
-                <span class="me-menu-label">Settings</span>
-                <svg class="me-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+            <!-- Mask Edit Panel (hidden by default) -->
+            <div class="me-mask-edit hidden" id="me-mask-edit">
+              <div class="me-section-header">
+                <span class="me-section-title" id="mask-edit-title">New Mask</span>
+                <button class="chat-new-btn" id="mask-edit-close">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
               </div>
-              <div class="me-menu-item" data-action="about" id="me-about-btn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                <span class="me-menu-label">About</span>
-                <svg class="me-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+              <label class="field-label">Name</label>
+              <input type="text" class="field-input" id="mask-name-input" placeholder="Your nickname for this character" />
+              <label class="field-label">Description</label>
+              <textarea class="field-input field-textarea" id="mask-desc-input" placeholder="Your persona description..." rows="4"></textarea>
+              <div class="form-actions" style="margin-top:12px">
+                <button class="settings-btn primary" id="mask-save-btn">Save</button>
+                <button class="settings-btn danger hidden" id="mask-delete-btn">Delete</button>
+              </div>
+            </div>
+
+            <div class="me-menu">
+              <div class="me-menu-item" data-action="favorites">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span>Favorites</span>
+                <svg class="me-menu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+              <div class="me-menu-item" data-action="albums">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>Albums</span>
+                <svg class="me-menu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+              <div class="me-menu-item" data-action="about">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span>About</span>
+                <svg class="me-menu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
               </div>
             </div>
           </div>
@@ -328,23 +366,155 @@ export async function renderChat(container) {
     alert("Coming soon");
   });
 
-  // Me page menu handlers
+    // Me page menu handlers
   container.querySelectorAll(".me-menu-item").forEach(item => {
     item.addEventListener("click", () => {
       const action = item.dataset.action;
-      if (action === "settings") {
-        if (window.MiMaShu?.closeModal) window.MiMaShu.closeModal();
-        setTimeout(() => {
-          const settingsIcon = document.querySelector('[data-app="Settings"]');
-          if (settingsIcon) settingsIcon.click();
-        }, 300);
-      } else if (action === "about") {
-        alert("米麻薯 Mi Ma Shu\nVersion 0.1.0");
+      if (action === "about") {
+        alert("Mi Ma Shu\nVersion 0.2.0");
       } else {
         alert("Coming soon");
       }
     });
   });
+
+  // ── Mask Management ──
+  let editingMaskId = null;
+
+  async function renderMaskList() {
+    const listEl = container.querySelector("#me-mask-list");
+    const masks = await getAllMasks();
+    if (masks.length === 0) {
+      listEl.innerHTML = '<div class="empty-hint">No masks yet. Create one to use different identities.</div>';
+      return;
+    }
+    listEl.innerHTML = masks.map(m => `
+      <div class="mask-card" data-maskid="${m.id}">
+        <div class="mask-card-avatar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="mask-card-info">
+          <div class="mask-card-name">${escHtml(m.name)}</div>
+          <div class="mask-card-desc">${escHtml(m.description ? m.description.slice(0, 50) : "No description")}</div>
+        </div>
+        <svg class="me-menu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+    `).join("");
+
+    listEl.querySelectorAll(".mask-card").forEach(card => {
+      card.addEventListener("click", async () => {
+        const mask = await getMask(card.dataset.maskid);
+        if (!mask) return;
+        editingMaskId = mask.id;
+        container.querySelector("#mask-edit-title").textContent = "Edit Mask";
+        container.querySelector("#mask-name-input").value = mask.name;
+        container.querySelector("#mask-desc-input").value = mask.description || "";
+        container.querySelector("#mask-delete-btn").classList.remove("hidden");
+        container.querySelector("#me-mask-edit").classList.remove("hidden");
+      });
+    });
+  }
+
+  container.querySelector("#add-mask-btn")?.addEventListener("click", () => {
+    editingMaskId = null;
+    container.querySelector("#mask-edit-title").textContent = "New Mask";
+    container.querySelector("#mask-name-input").value = "";
+    container.querySelector("#mask-desc-input").value = "";
+    container.querySelector("#mask-delete-btn").classList.add("hidden");
+    container.querySelector("#me-mask-edit").classList.remove("hidden");
+  });
+
+  container.querySelector("#mask-edit-close")?.addEventListener("click", () => {
+    container.querySelector("#me-mask-edit").classList.add("hidden");
+  });
+
+  container.querySelector("#mask-save-btn")?.addEventListener("click", async () => {
+    const name = container.querySelector("#mask-name-input").value.trim();
+    if (!name) { alert("Name is required"); return; }
+    const desc = container.querySelector("#mask-desc-input").value.trim();
+    if (editingMaskId) {
+      const existing = await getMask(editingMaskId);
+      if (existing) {
+        existing.name = name;
+        existing.description = desc;
+        await saveMask(existing);
+      }
+    } else {
+      const mask = createMask({ name, description: desc });
+      await saveMask(mask);
+    }
+    container.querySelector("#me-mask-edit").classList.add("hidden");
+    await renderMaskList();
+  });
+
+  container.querySelector("#mask-delete-btn")?.addEventListener("click", async () => {
+    if (!editingMaskId) return;
+    if (confirm("Delete this mask?")) {
+      await deleteMask(editingMaskId);
+      editingMaskId = null;
+      container.querySelector("#me-mask-edit").classList.add("hidden");
+      await renderMaskList();
+    }
+  });
+
+  // ── Moments Post Creation ──
+  let momentImages = [];
+
+  container.querySelector("#moments-camera-btn")?.addEventListener("click", () => {
+    const form = container.querySelector("#moments-post-form");
+    form.classList.toggle("hidden");
+    if (!form.classList.contains("hidden")) {
+      container.querySelector("#moments-post-text").value = "";
+      momentImages = [];
+      container.querySelector("#moments-post-images").innerHTML = "";
+    }
+  });
+
+  container.querySelector("#moments-cancel-post")?.addEventListener("click", () => {
+    container.querySelector("#moments-post-form").classList.add("hidden");
+  });
+
+  container.querySelector("#moments-add-image-btn")?.addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.multiple = true;
+    input.onchange = (e) => {
+      Array.from(e.target.files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          momentImages.push(ev.target.result);
+          const imgContainer = container.querySelector("#moments-post-images");
+          const img = document.createElement("img");
+          img.src = ev.target.result;
+          img.className = "moments-post-thumb";
+          imgContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    };
+    input.click();
+  });
+
+  container.querySelector("#moments-submit-post")?.addEventListener("click", async () => {
+    const text = container.querySelector("#moments-post-text").value.trim();
+    if (!text && momentImages.length === 0) { alert("Say something or add a photo"); return; }
+    const moment = createMoment({ content: text, images: momentImages, owner: "player" });
+    await saveMoment(moment);
+    container.querySelector("#moments-post-form").classList.add("hidden");
+    await renderMomentsFeed(container);
+  });
+
+  // Initial moments render
+  if (!container.querySelector("#chat-moments-view").classList.contains("hidden")) {
+    renderMomentsFeed(container);
+  }
+  // Initial mask list render when Me tab is shown
+  const meTab = container.querySelector('[data-tab="me"]');
+  if (meTab) {
+    const origListener = meTab.onclick;
+    meTab.addEventListener("click", () => renderMaskList());
+  }
 }
 
 /* ── 会话列表渲染（Session List） ── */
@@ -441,21 +611,53 @@ async function renderMessages(container) {
     return;
   }
 
-  msgContainer.innerHTML = messages
+    msgContainer.innerHTML = messages
     .map(
-      (msg) => `
+      (msg, idx) => {
+        // Narrator detection: content wrapped in *...*  or role is narrator
+        const isNarration = msg.role === "narrator" || (msg.role === "assistant" && /^\*[^*]/.test(msg.content.trim()) && msg.content.trim().endsWith("*"));
+        if (isNarration) {
+          const narrationText = msg.content.replace(/^\*|\*$/g, "").trim();
+          return `
+    <div class="msg-row narrator" data-msgid="${msg.id}">
+      <div class="msg-narration">${renderMarkdown(narrationText)}</div>
+    </div>`;
+        }
+
+        // Check if next message exists (for auto-collapse translation)
+        const hasNextMsg = idx < messages.length - 1;
+        const translationHtml = msg.translation ? `
+          <div class="msg-translation ${hasNextMsg ? 'collapsed' : ''}" data-msgid="${msg.id}">
+            <div class="msg-translation-content">${renderMarkdown(msg.translation)}</div>
+          </div>
+          <span class="msg-trans-badge" data-msgid="${msg.id}">译</span>
+        ` : "";
+
+        return `
     <div class="msg-row ${msg.role}" data-msgid="${msg.id}">
       <div class="msg-bubble ${msg.role}">
         <div class="msg-content">${renderMarkdown(msg.content)}</div>
+        ${translationHtml}
         <div class="msg-meta">
           ${msg.isEdited ? '<span class="msg-edited">edited</span>' : ""}
           <span class="msg-time">${formatTime(msg.timestamp)}</span>
         </div>
       </div>
     </div>
-  `
+  `;
+      }
     )
     .join("");
+  
+  // Bind translation toggle
+  msgContainer.querySelectorAll(".msg-trans-badge").forEach(badge => {
+    badge.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const mid = badge.dataset.msgid;
+      const transEl = msgContainer.querySelector(`.msg-translation[data-msgid="${mid}"]`);
+      if (transEl) transEl.classList.toggle("collapsed");
+    });
+  });
 
   scrollToBottom(msgContainer);
 }
@@ -559,6 +761,26 @@ async function buildSystemPrompt(session) {
   const parts = [];
   const settings = await getSettings();
 
+  // Load active preset
+  const presetId = getActivePresetId();
+  let activePreset = null;
+  if (presetId.startsWith("__")) {
+    activePreset = getBuiltinPreset(presetId);
+  } else {
+    activePreset = await getPreset(presetId);
+  }
+  if (activePreset?.systemPrompt) {
+    parts.push(activePreset.systemPrompt);
+  }
+
+  // Load user mask if bound to session
+  if (session.maskId) {
+    const mask = await getMask(session.maskId);
+    if (mask?.description) {
+      parts.push("The user's persona: " + mask.description);
+    }
+  }
+
   if (session.mode === "ai" || settings.chatMode === "ai") {
     parts.push("You are a caring and warm AI companion in a romantic relationship with the user. Be natural, affectionate, and genuine.");
   }
@@ -568,10 +790,6 @@ async function buildSystemPrompt(session) {
     if (char) {
       const charPrompt = buildCharacterPrompt(char);
       if (charPrompt) parts.push(charPrompt);
-      if (char.presetId) {
-        const preset = await getPreset(char.presetId);
-        if (preset?.systemPrompt) parts.push(preset.systemPrompt);
-      }
     }
   }
 
@@ -1211,6 +1429,179 @@ function showSearchPage(container) {
     container.querySelector("#chat-view").classList.remove("hidden");
   };
 }
+
+
+/* ── Moments Feed Rendering ── */
+async function renderMomentsFeed(container) {
+  const feed = container.querySelector("#moments-feed");
+  const moments = await getAllMoments();
+  if (moments.length === 0) {
+    feed.innerHTML = '<div class="empty-hint" style="padding:40px 0;text-align:center">No moments yet</div>';
+    return;
+  }
+  feed.innerHTML = moments.map(m => {
+    const timeStr = formatTime(m.createdAt);
+    const imagesHtml = m.images && m.images.length > 0
+      ? '<div class="moment-images">' + m.images.map(img => '<img class="moment-img" src="' + img + '">').join("") + '</div>'
+      : "";
+    const commentsHtml = m.comments && m.comments.length > 0
+      ? '<div class="moment-comments">' + m.comments.map(c => '<div class="moment-comment"><span class="moment-comment-name">' + escHtml(c.name || "Anonymous") + ':</span> ' + escHtml(c.text) + '</div>').join("") + '</div>'
+      : "";
+    return '<div class="moment-card" data-momentid="' + m.id + '">' +
+      '<div class="moment-header">' +
+        '<div class="moment-avatar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>' +
+        '<div class="moment-header-info"><span class="moment-owner">' + escHtml(m.owner === "player" ? "Me" : m.owner) + '</span><span class="moment-time">' + timeStr + '</span></div>' +
+      '</div>' +
+      (m.content ? '<div class="moment-text">' + escHtml(m.content) + '</div>' : '') +
+      imagesHtml +
+      '<div class="moment-actions">' +
+        '<button class="moment-like-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>' +
+        '<button class="moment-comment-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>' +
+        '<button class="moment-delete-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+      '</div>' +
+      commentsHtml +
+    '</div>';
+  }).join("");
+
+  // Bind moment actions
+  feed.querySelectorAll(".moment-comment-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const mid = btn.dataset.momentid;
+      const text = prompt("Add a comment:");
+      if (!text || !text.trim()) return;
+      const moment = await getMoment(mid);
+      if (!moment) return;
+      if (!moment.comments) moment.comments = [];
+      moment.comments.push({ name: "Me", text: text.trim(), time: Date.now() });
+      await saveMoment(moment);
+      await renderMomentsFeed(container);
+    });
+  });
+
+  feed.querySelectorAll(".moment-delete-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Delete this moment?")) return;
+      await deleteMoment(btn.dataset.momentid);
+      await renderMomentsFeed(container);
+    });
+  });
+}
+
+/* ── Sticker Management ── */
+async function renderStickerTab(container) {
+  const stickerContent = container.querySelector("#sticker-content");
+  if (!stickerContent) return;
+
+  const stickers = await getAllStickers();
+  stickerContent.innerHTML = '<div class="sticker-toolbar">' +
+    '<input type="text" class="sticker-search" id="sticker-search-input" placeholder="Search tags...">' +
+    '<button class="sticker-upload-btn" id="sticker-upload-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>' +
+    '<button class="sticker-manage-btn" id="sticker-manage-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>' +
+  '</div>';
+
+  if (stickers.length === 0) {
+    stickerContent.innerHTML += '<div class="empty-hint" style="padding:20px 0">No stickers yet. Tap + to upload.</div>';
+  } else {
+    const grid = document.createElement("div");
+    grid.className = "sticker-grid";
+    stickers.forEach(s => {
+      const item = document.createElement("div");
+      item.className = "sticker-item";
+      item.dataset.stickerid = s.id;
+      item.innerHTML = '<img src="' + s.imageData + '" alt="' + escHtml(s.name) + '">';
+      item.addEventListener("click", () => {
+        const input = container.querySelector("#chat-input");
+        if (input) {
+          input.value += "[sticker:" + s.name + "]";
+          input.focus();
+        }
+        container.querySelector("#emoji-panel")?.classList.add("hidden");
+      });
+      grid.appendChild(item);
+    });
+    stickerContent.appendChild(grid);
+  }
+
+  // Upload stickers
+  stickerContent.querySelector("#sticker-upload-btn")?.addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.multiple = true;
+    input.onchange = async (e) => {
+      for (const file of e.target.files) {
+        const dataUrl = await readFileAsDataURL(file);
+        const name = prompt("Name for this sticker:", file.name.replace(/\.[^.]+$/, ""));
+        if (!name) continue;
+        const tags = prompt("Tags (comma-separated):", "");
+        const sticker = createSticker({
+          name: name.trim(),
+          imageData: dataUrl,
+          tags: tags ? tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+        });
+        await saveSticker(sticker);
+      }
+      await renderStickerTab(container);
+    };
+    input.click();
+  });
+
+  // Search stickers
+  stickerContent.querySelector("#sticker-search-input")?.addEventListener("input", async (e) => {
+    const keyword = e.target.value.trim();
+    const grid = stickerContent.querySelector(".sticker-grid");
+    if (!grid) return;
+    if (!keyword) {
+      grid.querySelectorAll(".sticker-item").forEach(item => item.style.display = "");
+      return;
+    }
+    const results = await searchStickers(keyword);
+    const resultIds = new Set(results.map(s => s.id));
+    grid.querySelectorAll(".sticker-item").forEach(item => {
+      item.style.display = resultIds.has(item.dataset.stickerid) ? "" : "none";
+    });
+  });
+
+  // Manage stickers (multi-select delete)
+  stickerContent.querySelector("#sticker-manage-btn")?.addEventListener("click", async () => {
+    const grid = stickerContent.querySelector(".sticker-grid");
+    if (!grid) { alert("No stickers to manage"); return; }
+    const items = grid.querySelectorAll(".sticker-item");
+    const isManaging = grid.classList.toggle("managing");
+    if (!isManaging) {
+      // Exit manage mode: remove checkboxes and delete selected
+      const selected = grid.querySelectorAll(".sticker-item.selected");
+      if (selected.length > 0 && confirm("Delete " + selected.length + " sticker(s)?")) {
+        for (const item of selected) {
+          await deleteSticker(item.dataset.stickerid);
+        }
+        await renderStickerTab(container);
+      }
+      items.forEach(item => item.classList.remove("selected"));
+      return;
+    }
+    // Enter manage mode
+    items.forEach(item => {
+      item.addEventListener("click", function manageClick(e) {
+        if (!grid.classList.contains("managing")) {
+          item.removeEventListener("click", manageClick);
+          return;
+        }
+        e.stopPropagation();
+        item.classList.toggle("selected");
+      });
+    });
+  });
+}
+
+function readFileAsDataURL(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target.result);
+    reader.readAsDataURL(file);
+  });
+}
+
 /* ── Utilities ── */
 function truncate(str, len) {
   if (!str) return "";

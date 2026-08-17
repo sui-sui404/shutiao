@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Models — 统一数据模型定义
  * 所有模块使用这些工厂函数创建标准数据结构
  */
@@ -45,6 +45,7 @@ export function createCharacter(overrides = {}) {
     presetId: null,
     parentId: null,
     variantLabel: "",
+    isNpc: false,
     tags: [],
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -60,6 +61,7 @@ export function createSession(overrides = {}) {
     id: uid(),
     title: "New Chat",
     characterId: null,
+    maskId: null,
     mode: "character",
     createdAt: Date.now(),
     updatedAt: Date.now(),
@@ -76,6 +78,8 @@ export function createMessage(overrides = {}) {
     sessionId: "",
     role: "user",
     content: "",
+    translation: "",
+    narration: "",
     timestamp: Date.now(),
     isEdited: false,
     ...overrides,
@@ -90,9 +94,76 @@ export function createPreset(overrides = {}) {
     id: uid(),
     name: "",
     systemPrompt: "",
+    enableNarrator: false,
+    enableBilingual: false,
+    narratorStyle: "default",
+    translationLang: "Chinese",
     isBuiltin: false,
     createdAt: Date.now(),
     updatedAt: Date.now(),
+    ...overrides,
+  };
+}
+
+/**
+ * 用户面具（不同角色绑定不同的用户身份）
+ */
+export function createMask(overrides = {}) {
+  return {
+    id: uid(),
+    name: "User",
+    avatar: "",
+    description: "",
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    ...overrides,
+  };
+}
+
+/**
+ * 世界书条目
+ */
+export function createLoreEntry(overrides = {}) {
+  return {
+    id: uid(),
+    keywords: [],
+    content: "",
+    isEnabled: true,
+    priority: 0,
+    characterId: null,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    ...overrides,
+  };
+}
+
+/**
+ * 表情包条目
+ */
+export function createSticker(overrides = {}) {
+  return {
+    id: uid(),
+    name: "",
+    imageData: "",
+    tags: [],
+    groupId: "default",
+    createdAt: Date.now(),
+    ...overrides,
+  };
+}
+
+/**
+ * 朋友圈动态
+ */
+export function createMoment(overrides = {}) {
+  return {
+    id: uid(),
+    owner: "player",
+    content: "",
+    images: [],
+    likes: [],
+    comments: [],
+    createdAt: Date.now(),
     ...overrides,
   };
 }
@@ -106,6 +177,7 @@ export function createSettings(overrides = {}) {
     chatMode: "character",
     activeApiId: null,
     defaultCharacterId: null,
+    activeMaskId: null,
     theme: "light",
     wallpaper: "",
     normLevel: "standard",

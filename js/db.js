@@ -17,6 +17,19 @@ db.version(1).stores({
   presets: "id, name, isBuiltin",
 });
 
+db.version(2).stores({
+  settings: "id",
+  apiConfigs: "id, name, isActive",
+  characters: "id, name, parentId, isNpc, createdAt",
+  sessions: "id, characterId, maskId, mode, updatedAt",
+  messages: "id, sessionId, timestamp",
+  presets: "id, name, isBuiltin",
+  masks: "id, name, createdAt",
+  loreEntries: "id, characterId, *keywords",
+  stickers: "id, groupId, *tags",
+  moments: "id, owner, createdAt",
+});
+
 /**
  * 初始化默认数据（首次运行时调用）
  */
@@ -181,11 +194,111 @@ export async function deletePreset(id) {
 }
 
 /**
+ * Masks CRUD（用户面具）
+ */
+export async function getAllMasks() {
+  return db.masks.orderBy("createdAt").toArray();
+}
+
+export async function getMask(id) {
+  return db.masks.get(id);
+}
+
+export async function saveMask(mask) {
+  mask.updatedAt = Date.now();
+  await db.masks.put(mask);
+  bus.emit("mask:changed", mask);
+  return mask;
+}
+
+export async function deleteMask(id) {
+  await db.masks.delete(id);
+  bus.emit("mask:deleted", id);
+}
+
+/**
+ * Lore Entries CRUD（世界书）
+ */
+export async function getAllLoreEntries() {
+  return db.loreEntries.toArray();
+}
+
+export async function getLoreEntry(id) {
+  return db.loreEntries.get(id);
+}
+
+export async function saveLoreEntry(entry) {
+  entry.updatedAt = Date.now();
+  await db.loreEntries.put(entry);
+  bus.emit("lore:changed", entry);
+  return entry;
+}
+
+export async function deleteLoreEntry(id) {
+  await db.loreEntries.delete(id);
+  bus.emit("lore:deleted", id);
+}
+
+export async function getLoreByCharacter(characterId) {
+  return db.loreEntries.where("characterId").equals(characterId).toArray();
+}
+
+/**
+ * Stickers CRUD（表情包）
+ */
+export async function getAllStickers() {
+  return db.stickers.toArray();
+}
+
+export async function getSticker(id) {
+  return db.stickers.get(id);
+}
+
+export async function saveSticker(sticker) {
+  await db.stickers.put(sticker);
+  bus.emit("sticker:changed", sticker);
+  return sticker;
+}
+
+export async function deleteSticker(id) {
+  await db.stickers.delete(id);
+  bus.emit("sticker:deleted", id);
+}
+
+export async function searchStickers(keyword) {
+  const kw = keyword.toLowerCase();
+  const all = await db.stickers.toArray();
+  return all.filter(s => s.tags.some(t => t.toLowerCase().includes(kw)) || s.name.toLowerCase().includes(kw));
+}
+
+/**
+ * Moments CRUD（朋友圈）
+ */
+export async function getAllMoments() {
+  return db.moments.orderBy("createdAt").reverse().toArray();
+}
+
+export async function getMoment(id) {
+  return db.moments.get(id);
+}
+
+export async function saveMoment(moment) {
+  await db.moments.put(moment);
+  bus.emit("moment:changed", moment);
+  return moment;
+}
+
+export async function deleteMoment(id) {
+  await db.moments.delete(id);
+  bus.emit("moment:deleted", id);
+}
+
+/**
  * 数据导出（一键备份）
  */
 export async function exportAll() {
   return {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     settings: await db.settings.toArray(),
     apiConfigs: await db.apiConfigs.toArray(),
@@ -193,6 +306,10 @@ export async function exportAll() {
     sessions: await db.sessions.toArray(),
     messages: await db.messages.toArray(),
     presets: await db.presets.toArray(),
+    masks: await db.masks.toArray(),
+    loreEntries: await db.loreEntries.toArray(),
+    stickers: await db.stickers.toArray(),
+    moments: await db.moments.toArray(),
   };
 }
 
@@ -200,7 +317,7 @@ export async function exportAll() {
  * 数据导入（一键恢复）
  */
 export async function importAll(data) {
-  if (!data || data.version !== 1) {
+  if (!data || (data.version !== 1 && data.version !== 2)) {
     throw new Error("Invalid backup file format");
   }
   await db.transaction(
@@ -211,6 +328,10 @@ export async function importAll(data) {
     db.sessions,
     db.messages,
     db.presets,
+    db.masks,
+    db.loreEntries,
+    db.stickers,
+    db.moments,
     async () => {
       await db.settings.clear();
       await db.apiConfigs.clear();
@@ -218,6 +339,10 @@ export async function importAll(data) {
       await db.sessions.clear();
       await db.messages.clear();
       await db.presets.clear();
+      await db.masks.clear();
+      await db.loreEntries.clear();
+      await db.stickers.clear();
+      await db.moments.clear();
 
       if (data.settings?.length) await db.settings.bulkPut(data.settings);
       if (data.apiConfigs?.length) await db.apiConfigs.bulkPut(data.apiConfigs);
@@ -225,6 +350,10 @@ export async function importAll(data) {
       if (data.sessions?.length) await db.sessions.bulkPut(data.sessions);
       if (data.messages?.length) await db.messages.bulkPut(data.messages);
       if (data.presets?.length) await db.presets.bulkPut(data.presets);
+      if (data.masks?.length) await db.masks.bulkPut(data.masks);
+      if (data.loreEntries?.length) await db.loreEntries.bulkPut(data.loreEntries);
+      if (data.stickers?.length) await db.stickers.bulkPut(data.stickers);
+      if (data.moments?.length) await db.moments.bulkPut(data.moments);
     }
   );
   bus.emit("data:imported");
