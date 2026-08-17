@@ -126,6 +126,8 @@ function openModal(appName) {
     renderChat(body);
   } else if (appName === "Character") {
     renderCharacter(body);
+  } else if (appName === "Presets") {
+    renderPresets(body);
   } else {
     body.innerHTML = `<p style="color:var(--text-secondary);text-align:center;padding:40px 0;">Coming Soon</p>`;
   }
@@ -266,3 +268,4 @@ window.MiMaShu = { closeModal, bus };
 
 /* ── Boot ── */
 document.addEventListener("DOMContentLoaded", boot);
+import { renderPresets } from "./presets.js";

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Chat — 聊天核心模块
  * 消息气泡 / 流式回复 / 会话管理 / Markdown / 消息操作
  */
@@ -68,14 +68,67 @@ export async function renderChat(container) {
 
         <!-- Moments View -->
         <div class="chat-moments-view hidden" id="chat-moments-view">
-          <div class="contacts-header"><span class="contacts-title">朋友圈</span></div>
-          <div class="empty-hint" style="padding:40px 0;text-align:center">Coming soon</div>
+          <div class="contacts-header">
+            <span class="contacts-title">朋友圈</span>
+            <button class="chat-new-btn" id="moments-camera-btn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </button>
+          </div>
+          <div class="moments-scroll">
+            <div class="moments-cover">
+              <div class="moments-cover-info">
+                <span class="moments-cover-name">User</span>
+                <div class="moments-cover-avatar">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+              </div>
+            </div>
+            <div class="moments-feed">
+              <div class="empty-hint" style="padding:40px 0;text-align:center">还没有动态</div>
+            </div>
+          </div>
         </div>
 
         <!-- Me View -->
         <div class="chat-me-view hidden" id="chat-me-view">
-          <div class="contacts-header"><span class="contacts-title">我</span></div>
-          <div class="empty-hint" style="padding:40px 0;text-align:center">Coming soon</div>
+          <div class="me-scroll">
+            <div class="me-profile-card">
+              <div class="me-avatar">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </div>
+              <div class="me-profile-info">
+                <span class="me-nickname">User</span>
+                <span class="me-id">ID: 000000</span>
+              </div>
+              <svg class="me-profile-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+            </div>
+
+            <div class="me-menu-section">
+              <div class="me-menu-item" data-action="favorites">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span class="me-menu-label">Favorites</span>
+                <svg class="me-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+              <div class="me-menu-item" data-action="album">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span class="me-menu-label">Album</span>
+                <svg class="me-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+
+            <div class="me-menu-section">
+              <div class="me-menu-item" data-action="settings" id="me-settings-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1.08 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1.08z"/></svg>
+                <span class="me-menu-label">Settings</span>
+                <svg class="me-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+              <div class="me-menu-item" data-action="about" id="me-about-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span class="me-menu-label">About</span>
+                <svg class="me-menu-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="chat-bottom-tabs">
@@ -197,7 +250,6 @@ export async function renderChat(container) {
           </div>
           <div class="detail-section">
             <button class="detail-item" data-action="edit-remark"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><span>修改备注</span><svg class="detail-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg></button>
-            <button class="detail-item" data-action="char-info"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>角色信息</span><svg class="detail-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg></button>
             <button class="detail-item" data-action="chat-bg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>设置聊天背景</span><svg class="detail-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg></button>
           </div>
           <div class="detail-section">
@@ -250,9 +302,32 @@ export async function renderChat(container) {
       if (charIcon) charIcon.click();
     }, 300);
   });
+
+  // Moments camera button
+  container.querySelector("#moments-camera-btn")?.addEventListener("click", () => {
+    alert("Coming soon");
+  });
+
+  // Me page menu handlers
+  container.querySelectorAll(".me-menu-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const action = item.dataset.action;
+      if (action === "settings") {
+        if (window.MiMaShu?.closeModal) window.MiMaShu.closeModal();
+        setTimeout(() => {
+          const settingsIcon = document.querySelector('[data-app="Settings"]');
+          if (settingsIcon) settingsIcon.click();
+        }, 300);
+      } else if (action === "about") {
+        alert("米麻薯 Mi Ma Shu\nVersion 0.1.0");
+      } else {
+        alert("Coming soon");
+      }
+    });
+  });
 }
 
-/* ── Session List ── */
+/* ── 会话列表渲染（Session List） ── */
 async function renderSessionList(container) {
   const list = container.querySelector("#session-list");
   const sessions = await getAllSessions();
@@ -274,6 +349,7 @@ async function renderSessionList(container) {
       ? (await getCharacter(s.characterId))?.name || "Unknown"
       : s.mode === "ai" ? "AI" : "Chat";
 
+    // 每个会话卡片：外层 wrapper（用于左滑溢出裁切），内含 card 主体 + 滑动操作按钮
     html += `
       <div class="session-card-wrapper" data-id="${s.id}">
         <div class="session-card" data-id="${s.id}">
@@ -286,6 +362,7 @@ async function renderSessionList(container) {
             <div class="session-preview">${escHtml(preview)}</div>
           </div>
         </div>
+        <!-- 左滑露出的操作按钮区域 -->
         <div class="session-swipe-actions">
           <button class="session-pin-btn" data-id="${s.id}"><svg viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24z"/></svg>置顶</button>
           <button class="session-delete-btn" data-id="${s.id}"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>删除</button>
@@ -570,10 +647,23 @@ function bindChatEvents(container) {
     }
   });
 
-  // Click session
+  // 当前已展开的滑动卡片（用于在新操作时自动关闭旧卡片）
+  let openedCard = null;
+
+  // 点击会话卡片 → 打开聊天（同时关闭已展开的滑动）
   container.querySelector("#session-list").addEventListener("click", (e) => {
+    // 如果点击的是置顶或删除按钮，不做处理（由后续 handler 处理）
+    if (e.target.closest(".session-pin-btn") || e.target.closest(".session-delete-btn")) return;
     const card = e.target.closest(".session-card");
-    if (card) openChatView(container, card.dataset.id);
+    if (!card) return;
+    // 关闭已展开的滑动卡片
+    if (openedCard) {
+      const prev = openedCard.querySelector(".session-card");
+      prev.style.transform = "";
+      prev.style.transition = "transform 0.2s ease";
+      openedCard = null;
+    }
+    openChatView(container, card.dataset.id);
   });
 
   // Back button
@@ -661,47 +751,83 @@ function bindChatEvents(container) {
     hideContextMenu(container);
   });
 
-  // Session card: swipe-to-delete + tap to open + delete button
+  // ── 会话卡片左滑操作（滑动露出置顶/删除按钮） ──
   const sessionList = container.querySelector("#session-list");
-  let swipeStartX = 0;
-  let swipingCard = null;
+  let swipeStartX = 0;        // 触摸起始 X 坐标
+  let swipingCard = null;      // 当前正在滑动的卡片 wrapper
+  let cardStartOffset = 0;     // 卡片开始滑动时的已有偏移量（用于右滑关闭）
 
+  // 辅助函数：关闭已展开的卡片
+  function closeOpenedCard() {
+    if (openedCard) {
+      const prev = openedCard.querySelector(".session-card");
+      prev.style.transform = "";
+      prev.style.transition = "transform 0.2s ease";
+      openedCard = null;
+    }
+  }
+
+  // 触摸开始：记录起点，关闭其他已展开的卡片
   sessionList.addEventListener("touchstart", (e) => {
     const wrapper = e.target.closest(".session-card-wrapper");
     if (!wrapper) return;
+
+    // 如果触摸的不是当前已展开的卡片，先关闭旧卡片
+    if (openedCard && openedCard !== wrapper) {
+      closeOpenedCard();
+    }
+
     swipeStartX = e.touches[0].clientX;
     swipingCard = wrapper;
+
+    // 记录卡片当前的偏移量（已展开的卡片可能在 -140px）
+    const card = wrapper.querySelector(".session-card");
+    const curTransform = card.style.transform;
+    cardStartOffset = curTransform
+      ? (parseFloat(curTransform.replace(/[^\-\d.]/g, "")) || 0)
+      : 0;
   });
 
+  // 触摸移动：卡片跟随手指，限制在 [-140, 0] 范围
   sessionList.addEventListener("touchmove", (e) => {
     if (!swipingCard) return;
     const dx = e.touches[0].clientX - swipeStartX;
     const card = swipingCard.querySelector(".session-card");
-    if (dx < -10) {
-      const offset = Math.max(dx, -140);
-      card.style.transform = `translateX(${offset}px)`;
+    // 新偏移 = 初始偏移 + 手指位移，clamp 到 [-140, 0]
+    const newOffset = Math.max(-140, Math.min(0, cardStartOffset + dx));
+
+    if (newOffset < 0) {
+      card.style.transform = `translateX(${newOffset}px)`;
       card.style.transition = "none";
     } else {
       card.style.transform = "";
-      card.style.transition = "";
+      card.style.transition = "none";
     }
   });
 
+  // 触摸结束：根据偏移量决定吸附到展开还是关闭
   sessionList.addEventListener("touchend", () => {
     if (!swipingCard) return;
     const card = swipingCard.querySelector(".session-card");
-    const current = parseFloat(card.style.transform.replace(/[^-\d.]/g, "")) || 0;
+    const current = parseFloat(card.style.transform.replace(/[^\-\d.]/g, "")) || 0;
+
     if (current < -60) {
+      // 超过阈值 → 吸附到完全展开（-140px）
       card.style.transform = "translateX(-140px)";
       card.style.transition = "transform 0.2s ease";
+      openedCard = swipingCard;
     } else {
+      // 未超过阈值 → 回弹到关闭状态
       card.style.transform = "";
       card.style.transition = "transform 0.2s ease";
+      if (openedCard === swipingCard) openedCard = null;
     }
     swipingCard = null;
   });
 
+  // 点击置顶/删除按钮
   sessionList.addEventListener("click", async (e) => {
+    // 置顶按钮
     const pinBtn = e.target.closest(".session-pin-btn");
     if (pinBtn) {
       e.stopPropagation();
@@ -709,16 +835,22 @@ function bindChatEvents(container) {
       if (session) {
         session.pinned = !session.pinned;
         await saveSession(session);
+        openedCard = null;
         await renderSessionList(container);
       }
       return;
     }
+    // 删除按钮
     const delBtn = e.target.closest(".session-delete-btn");
     if (delBtn) {
       e.stopPropagation();
       if (confirm("确定删除这个聊天吗？")) {
         await deleteSession(delBtn.dataset.id);
+        openedCard = null;
         await renderSessionList(container);
+      } else {
+        // 用户取消删除 → 关闭滑动
+        closeOpenedCard();
       }
       return;
     }
@@ -765,16 +897,6 @@ function bindChatEvents(container) {
         await saveSession(session);
         container.querySelector("#detail-name").textContent = session.title;
         container.querySelector("#chat-topbar-title").textContent = session.title;
-      }
-    } else if (action === "char-info") {
-      const session = await getSession(activeSessionId);
-      if (session?.characterId) {
-        const char = await getCharacter(session.characterId);
-        if (char) {
-          alert(`角色：${char.name}\n描述：${char.description || "无"}\n性格：${char.personality || "无"}`);
-        }
-      } else {
-        alert("当前聊天未绑定角色");
       }
     } else if (action === "chat-bg") {
       alert("设置聊天背景 - Coming soon!");

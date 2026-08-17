@@ -1,4 +1,4 @@
-/* ── CSS Variables ── */
+﻿/* ── CSS Variables ── */
 :root {
   --bg: #F2F2F7;
   --text-primary: #1D1D1F;
@@ -961,7 +961,7 @@ html, body {
   transform: scale(0.98);
 }
 
-/* Swipe-to-delete wrapper */
+/* ── 左滑删除/置顶：卡片滑动容器 ── */
 .session-card-wrapper {
   position: relative;
   overflow: hidden;
@@ -2055,4 +2055,251 @@ html, body {
 }
 @media (min-width: 768px) {
   #pwa-install-banner { display: none; }
+}
+
+/* ── Presets Page ── */
+.presets-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 16px 20px 40px;
+  overflow-x: hidden;
+}
+.presets-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.presets-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.presets-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.presets-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.preset-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.preset-card:active { background: rgba(255,255,255,0.6); }
+.preset-card.active { border-color: var(--text-secondary); }
+.preset-card-left { flex: 1; min-width: 0; }
+.preset-card-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.preset-card-desc {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+.presets-empty {
+  text-align: center;
+  padding: 20px 0;
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+.presets-edit {
+  padding: 16px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+}
+.field-textarea {
+  width: 100%;
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 14px;
+  font-family: var(--font);
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.3);
+  resize: vertical;
+  outline: none;
+}
+.field-textarea:focus { border-color: var(--text-secondary); }
+.preset-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.preset-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.preset-option input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--text-secondary);
+}
+
+/* ── Moments View ── */
+.moments-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.moments-cover {
+  position: relative;
+  height: 150px;
+  background: linear-gradient(135deg, #D1D1D6, #C7C7CC);
+}
+
+.moments-cover-info {
+  position: absolute;
+  right: 16px;
+  bottom: -20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.moments-cover-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 3px rgba(0,0,0,.3);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.moments-cover-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.45);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,.12);
+}
+
+.moments-feed {
+  padding: 32px 16px 16px;
+}
+
+/* ── Me View ── */
+.me-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
+  padding-top: 48px;
+}
+
+.me-profile-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 16px;
+  background: rgba(255,255,255,.45);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border-radius: 18px;
+  margin-bottom: 16px;
+  cursor: pointer;
+}
+
+.me-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: #E5E5EA;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.me-profile-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.me-nickname {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1D1D1F;
+  font-family: 'Inter', sans-serif;
+}
+
+.me-id {
+  font-size: 13px;
+  color: #AEAEB2;
+  font-family: 'Inter', sans-serif;
+}
+
+.me-profile-arrow {
+  flex-shrink: 0;
+}
+
+.me-menu-section {
+  background: rgba(255,255,255,.45);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border-radius: 18px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.me-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background .15s;
+}
+
+.me-menu-item:active {
+  background: rgba(0,0,0,.04);
+}
+
+.me-menu-item + .me-menu-item {
+  border-top: 0.5px solid rgba(0,0,0,.06);
+}
+
+.me-menu-label {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 400;
+  color: #1D1D1F;
+  font-family: 'Inter', sans-serif;
+}
+
+.me-menu-arrow {
+  flex-shrink: 0;
 }
