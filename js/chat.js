@@ -86,6 +86,39 @@ export async function renderChat(container) {
               <div class="empty-hint" style="padding:40px 0;text-align:center">还没有动态</div>
             </div>
           </div>
+          </div>
+
+          <!-- FAB Post Button -->
+          <div class="moments-fab" id="moments-fab-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+
+          <!-- Full-page Post Overlay (WeChat style) -->
+          <div class="moments-post-page hidden" id="moments-post-page">
+            <div class="moments-post-topbar">
+              <button class="moments-post-cancel" id="mpp-cancel">取消</button>
+              <button class="moments-post-submit" id="mpp-submit">发表</button>
+            </div>
+            <textarea class="moments-post-textarea" id="mpp-text" placeholder="这一刻的想法..." rows="5"></textarea>
+            <div class="moments-post-img-area" id="mpp-images">
+              <div class="moments-post-add-img" id="mpp-add-img">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              </div>
+            </div>
+            <div class="moments-post-options">
+              <div class="mpp-option-row">
+                <span class="mpp-option-label">发帖身份</span>
+                <select class="mpp-select" id="mpp-poster-select">
+                  <option value="player">我自己</option>
+                </select>
+              </div>
+              <div class="mpp-option-row">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>所在位置</span>
+                <span class="mpp-option-value">即将开放</span>
+              </div>
+            </div>
+          </div>
         </div>
 
                 <!-- Me View -->
@@ -145,38 +178,6 @@ export async function renderChat(container) {
                 <svg class="me-menu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
               </div>
             </div>
-          
-      <!-- FAB Post Button -->
-          <div class="moments-fab" id="moments-fab-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </div>
-
-          <!-- Full-page Post Overlay (WeChat style) -->
-      <div class="moments-post-page hidden" id="moments-post-page">
-        <div class="moments-post-topbar">
-          <button class="moments-post-cancel" id="mpp-cancel">取消</button>
-          <button class="moments-post-submit" id="mpp-submit">发表</button>
-        </div>
-        <textarea class="moments-post-textarea" id="mpp-text" placeholder="这一刻的想法..." rows="5"></textarea>
-        <div class="moments-post-img-area" id="mpp-images">
-          <div class="moments-post-add-img" id="mpp-add-img">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          </div>
-        </div>
-        <div class="moments-post-options">
-          <div class="mpp-option-row">
-            <span class="mpp-option-label">发帖身份</span>
-            <select class="mpp-select" id="mpp-poster-select">
-              <option value="player">我自己</option>
-            </select>
-          </div>
-          <div class="mpp-option-row">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>所在位置</span>
-            <span class="mpp-option-value">即将开放</span>
-          </div>
-        </div>
-      </div>
         </div>
         </div>
 
