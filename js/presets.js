@@ -21,9 +21,6 @@ export async function renderPresets(container) {
 
   container.innerHTML = `
     <div class="presets-page">
-      <div class="presets-header">
-        <span class="presets-title">Presets</span>
-      </div>
 
       <!-- Built-in presets -->
       <div class="presets-section">

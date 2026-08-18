@@ -2877,3 +2877,83 @@ html, body {
   background: #FF3B30;
   border-color: #FF3B30;
 }
+
+
+/* ═══════ App Placeholder Pages ═══════ */
+.placeholder-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px 20px;
+  min-height: 60vh;
+}
+.placeholder-icon-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: rgba(255,255,255,.6);
+  backdrop-filter: blur(24px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.placeholder-icon svg {
+  width: 36px;
+  height: 36px;
+  fill: none;
+  stroke: #8E8E93;
+  stroke-width: 1.4;
+}
+.placeholder-badge {
+  font-size: 12px;
+  font-weight: 500;
+  color: #AEAEB2;
+  background: rgba(142,142,147,.1);
+  border-radius: 10px;
+  padding: 3px 12px;
+  margin-bottom: 8px;
+}
+.placeholder-desc {
+  font-size: 14px;
+  color: var(--text-secondary, #636366);
+  text-align: center;
+  margin-bottom: 24px;
+}
+.placeholder-subs {
+  width: 100%;
+  background: rgba(255,255,255,.6);
+  backdrop-filter: blur(24px);
+  border-radius: 18px;
+  overflow: hidden;
+}
+.placeholder-sub-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0,0,0,.04);
+}
+.placeholder-sub-item:last-child {
+  border-bottom: none;
+}
+.placeholder-sub-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #AEAEB2;
+  flex-shrink: 0;
+}
+.placeholder-sub-item span:first-of-type {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary, #1D1D1F);
+}
+.placeholder-sub-badge {
+  font-size: 11px;
+  color: #AEAEB2;
+  background: rgba(142,142,147,.08);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
