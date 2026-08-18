@@ -220,7 +220,7 @@ export async function renderCharacter(container) {
           <button class="chat-back-to-home" id="char-edit-back">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <span class="char-edit-title" id="char-edit-title">Create Character</span>
+          <span class="char-edit-title" id="char-edit-title">创建角色</span>
           <div style="width:36px"></div>
         </div>
         <div class="char-edit-form">
@@ -269,8 +269,8 @@ export async function renderCharacter(container) {
           </div>
 
           <div class="form-actions">
-            <button class="settings-btn primary" id="char-save-btn">Save</button>
-            <button class="settings-btn danger hidden" id="char-delete-btn">Delete</button>
+            <button class="settings-btn primary" id="char-save-btn">保存</button>
+            <button class="settings-btn danger hidden" id="char-delete-btn">删除</button>
           </div>
         </div>
       </div>
@@ -281,19 +281,24 @@ export async function renderCharacter(container) {
           <button class="chat-back-to-home" id="npc-gen-back">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <span class="char-edit-title">NPC Generator</span>
+          <span class="char-edit-title">NPC生成器</span>
           <div style="width:36px"></div>
         </div>
         <div class="char-edit-form">
           <div class="npc-mode-toggle" id="npc-mode-toggle">
-            <button class="npc-mode-btn active" data-mode="ai">AI Generate</button>
-            <button class="npc-mode-btn" data-mode="manual">Manual</button>
+            <button class="npc-mode-btn active" data-mode="ai">AI生成</button>
+            <button class="npc-mode-btn" data-mode="manual">手动创建</button>
           </div>
+
+          <label class="field-label">关联角色</label>
+          <select class="field-input" id="npc-parent-select">
+            <option value="">请选择关联的角色</option>
+          </select>
 
           <!-- AI Generate Section -->
           <div class="npc-ai-section visible" id="npc-ai-section">
-            <label class="field-label">Describe the NPC you want</label>
-            <textarea class="field-input field-textarea" id="npc-ai-prompt" placeholder="e.g. A gentle maid with a sharp tongue, secretly a princess in disguise" rows="4"></textarea>
+            <label class="field-label">描述你想生成的NPC（例如：沈莲生的爸爸，安分市井店老板）</label>
+            <textarea class="field-input field-textarea" id="npc-ai-prompt" placeholder="例如：沈莲生的爸爸，安分市井店老板" rows="4"></textarea>
             <div class="form-actions">
               <button class="settings-btn primary" id="npc-ai-generate-btn">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -304,38 +309,38 @@ export async function renderCharacter(container) {
 
             <!-- AI Preview / Edit Form -->
             <div class="npc-gen-preview" id="npc-gen-preview">
-              <label class="field-label">Name</label>
-              <input type="text" class="field-input" id="npc-ai-name" placeholder="Generated name" />
+              <label class="field-label">名字</label>
+              <input type="text" class="field-input" id="npc-ai-name" placeholder="生成的名字" />
 
-              <label class="field-label">Description</label>
+              <label class="field-label">描述</label>
               <textarea class="field-input field-textarea" id="npc-ai-desc" rows="4"></textarea>
 
-              <label class="field-label">Personality</label>
+              <label class="field-label">性格</label>
               <textarea class="field-input field-textarea" id="npc-ai-personality" rows="3"></textarea>
 
-              <label class="field-label">First Message</label>
-              <textarea class="field-input field-textarea" id="npc-ai-first-msg" rows="3"></textarea>
+              <label class="field-label">与角色的关系</label>
+              <textarea class="field-input field-textarea" id="npc-ai-first-msg" rows="2" placeholder="例如：父子、朋友、同事..."></textarea>
 
               <div class="form-actions" style="margin-top:16px">
-                <button class="settings-btn primary" id="npc-ai-save-btn">Save NPC</button>
-                <button class="settings-btn" id="npc-ai-regenerate-btn">Regenerate</button>
+                <button class="settings-btn primary" id="npc-ai-save-btn">保存NPC</button>
+                <button class="settings-btn" id="npc-ai-regenerate-btn">重新生成</button>
               </div>
             </div>
           </div>
 
           <!-- Manual Section -->
           <div class="npc-manual-section" id="npc-manual-section">
-            <label class="field-label">Name</label>
-            <input type="text" class="field-input" id="npc-gen-name" placeholder="NPC name" />
+            <label class="field-label">名字</label>
+            <input type="text" class="field-input" id="npc-gen-name" placeholder="NPC名字" />
 
-            <label class="field-label">Brief Description</label>
-            <textarea class="field-input field-textarea" id="npc-gen-desc" placeholder="Short description of this NPC" rows="3"></textarea>
+            <label class="field-label">简要描述</label>
+            <textarea class="field-input field-textarea" id="npc-gen-desc" placeholder="简要描述" rows="3"></textarea>
 
-            <label class="field-label">Relationship</label>
-            <input type="text" class="field-input" id="npc-gen-rel" placeholder="Relationship to main character" />
+            <label class="field-label">与角色的关系</label>
+            <input type="text" class="field-input" id="npc-gen-rel" placeholder="与角色的关系" />
 
             <div class="form-actions">
-              <button class="settings-btn primary" id="npc-gen-create-btn">Create NPC</button>
+              <button class="settings-btn primary" id="npc-gen-create-btn">创建NPC</button>
             </div>
           </div>
         </div>
@@ -481,7 +486,7 @@ function bindEvents(container) {
   container
     .querySelector("#char-npc-gen-btn")
     .addEventListener("click", () => {
-      openNpcGenView(container);
+      await openNpcGenView(container);
     });
 
   /* 类型切换 */
@@ -508,7 +513,7 @@ function bindEvents(container) {
     .addEventListener("click", async () => {
       const values = readForm(container);
       if (!values.name.trim()) {
-        alert("Please enter a name.");
+        alert("\u8bf7\u8f93\u5165\u540d\u5b57");
         return;
       }
 
@@ -621,25 +626,27 @@ function bindEvents(container) {
     const name = (container.querySelector("#npc-ai-name")?.value || "").trim();
     const desc = (container.querySelector("#npc-ai-desc")?.value || "").trim();
     const personality = (container.querySelector("#npc-ai-personality")?.value || "").trim();
-    const firstMsg = (container.querySelector("#npc-ai-first-msg")?.value || "").trim();
+    const relationship = (container.querySelector("#npc-ai-first-msg")?.value || "").trim();
+    const parentId = container.querySelector("#npc-parent-select")?.value || "";
 
     if (!name) {
-      alert("Please enter a name.");
+      alert("\u8bf7\u8f93\u5165\u540d\u5b57");
       return;
     }
 
     const descParts = [];
     if (desc) descParts.push(desc);
-    if (personality) descParts.push("Personality: " + personality);
+    if (personality) descParts.push("\u6027\u683c: " + personality);
+    if (relationship) descParts.push("\u5173\u7cfb: " + relationship);
     const description = descParts.join("\n\n");
 
     const char = createCharacter({
       name,
       avatar: name.charAt(0) || "?",
       description,
-      firstMessage: firstMsg,
       personality,
       isNpc: true,
+      parentId: parentId || null,
     });
 
     await saveCharacter(char);
@@ -663,9 +670,10 @@ function bindEvents(container) {
       ).trim();
 
       if (!name) {
-        alert("Please enter an NPC name.");
+        alert("\u8bf7\u8f93\u5165NPC\u540d\u5b57");
         return;
       }
+      const parentId = container.querySelector("#npc-parent-select")?.value || "";
 
       const parts = [];
       if (desc) parts.push(desc);
@@ -677,6 +685,7 @@ function bindEvents(container) {
         avatar: name.charAt(0) || "?",
         description,
         isNpc: true,
+        parentId: parentId || null,
       });
 
       await saveCharacter(char);
@@ -690,8 +699,13 @@ function bindEvents(container) {
 async function handleAiGenerate(container) {
   const promptText = (container.querySelector("#npc-ai-prompt")?.value || "").trim();
   if (!promptText) {
-    alert("Please describe the NPC you want to generate.");
+    alert("\u8bf7\u63cf\u8ff0\u4f60\u60f3\u751f\u6210\u7684NPC");
     return;
+  }
+  const parentId = container.querySelector("#npc-parent-select")?.value || "";
+  let parentChar = null;
+  if (parentId) {
+    parentChar = await getCharacter(parentId);
   }
 
   const statusEl = container.querySelector("#npc-gen-status");
@@ -700,7 +714,7 @@ async function handleAiGenerate(container) {
 
   const api = await getActiveApi();
   if (!api) {
-    statusEl.textContent = "No active API configured. Go to Settings first.";
+    statusEl.textContent = "\u8bf7\u5148\u5728Settings\u914d\u7f6eAPI";
     statusEl.className = "npc-gen-status error";
     return;
   }
@@ -716,9 +730,15 @@ async function handleAiGenerate(container) {
   statusEl.innerHTML = `<span class="npc-gen-spinner"></span>Generating...`;
 
   const systemPrompt = [
-    "You are an NPC generator. Based on the user's description, create a character profile.",
+    "You are an NPC generator for a role-playing scenario.",
+    parentChar ? "The main character is: " + parentChar.name + ". Background: " + (parentChar.description || "") : "",
+    "Based on the user's description, create an NPC character profile related to the main character.",
     'Output ONLY valid JSON with these fields:',
-    '{"name": "...", "description": "...", "personality": "...", "firstMessage": "..."}',
+    '{"name": "...", "description": "...", "personality": "...", "relationship": "..."}',
+    "description should be a detailed character description.",
+    "personality should describe their personality traits.",
+    "relationship should describe their relationship with the main character.",
+    "Write everything in Chinese if the input is in Chinese.",
     "Do not include any other text, markdown fences, or explanation. Only the JSON object."
   ].join("\n");
 
@@ -739,14 +759,14 @@ async function handleAiGenerate(container) {
     container.querySelector("#npc-ai-name").value = parsed.name || "";
     container.querySelector("#npc-ai-desc").value = parsed.description || "";
     container.querySelector("#npc-ai-personality").value = parsed.personality || "";
-    container.querySelector("#npc-ai-first-msg").value = parsed.firstMessage || "";
+    container.querySelector("#npc-ai-first-msg").value = parsed.relationship || parsed.firstMessage || "";
 
     previewEl.classList.add("visible");
-    statusEl.textContent = "Generated! Review and edit below, then save.";
+    statusEl.textContent = "\u751f\u6210\u5b8c\u6210\uff01\u8bf7\u67e5\u770b\u5e76\u7f16\u8f91\u540e\u4fdd\u5b58";
     statusEl.className = "npc-gen-status success";
   } catch (err) {
     if (err.name === "AbortError") {
-      statusEl.textContent = "Generation cancelled.";
+      statusEl.textContent = "\u5df2\u53d6\u6d88";
       statusEl.className = "npc-gen-status";
     } else {
       statusEl.textContent = "Error: " + err.message;
@@ -806,7 +826,18 @@ function closeEditView(container) {
   container.querySelector("#char-list-view").classList.remove("hidden");
 }
 
-function openNpcGenView(container) {
+async function openNpcGenView(container) {
+  // Populate parent character selector
+  const parentSel = container.querySelector("#npc-parent-select");
+  if (parentSel) {
+    const allChars = await getAllCharacters();
+    const mainChars = allChars.filter(c => !c.isNpc);
+    parentSel.innerHTML = '<option value="">\u8bf7\u9009\u62e9\u5173\u8054\u7684\u89d2\u8272</option>';
+    mainChars.forEach(c => {
+      parentSel.innerHTML += '<option value="' + c.id + '">' + (c.name || '\u89d2\u8272') + '</option>';
+    });
+  }
+
   container.querySelector("#npc-gen-name").value = "";
   container.querySelector("#npc-gen-desc").value = "";
   container.querySelector("#npc-gen-rel").value = "";

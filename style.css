@@ -3564,3 +3564,83 @@ html, body {
   color: #AEAEB2;
   margin-top: 4px;
 }
+
+/* ── Batch Picker Bottom ── */
+.cpp-bottom {
+  padding: 16px;
+  background: #fff;
+  border-top: 1px solid rgba(0,0,0,.06);
+}
+.cpp-count-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: #1D1D1F;
+}
+.cpp-count-select {
+  border: 1px solid rgba(0,0,0,.1);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  background: #F2F2F7;
+  color: #1D1D1F;
+}
+.cpp-npc-comment-row {
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #636366;
+}
+.cpp-npc-comment-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.cpp-actions {
+  display: flex;
+  gap: 10px;
+}
+.cpp-actions .settings-btn {
+  flex: 1;
+}
+.cpp-progress {
+  margin-top: 12px;
+  text-align: center;
+  font-size: 14px;
+  color: #636366;
+}
+.cpp-check-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #1D1D1F;
+}
+.cpp-check-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #1D1D1F;
+}
+.cpp-check-name {
+  font-weight: 500;
+}
+.cpp-check-tag {
+  font-size: 12px;
+  color: #AEAEB2;
+  background: rgba(0,0,0,.04);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: auto;
+}
+.cpp-npc-list {
+  padding-left: 16px;
+  border-left: 2px solid rgba(0,0,0,.06);
+  margin-left: 20px;
+}
+.cpp-npc-row {
+  padding: 8px 16px;
+  font-size: 14px;
+}
