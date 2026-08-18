@@ -85,22 +85,12 @@ export async function renderChat(container) {
                 </div>
               </div>
             </div>
-            <!-- Post Creation Form (hidden by default) -->
-            <div class="moments-post-form hidden" id="moments-post-form">
-              <textarea class="field-input field-textarea" id="moments-post-text" placeholder="分享你的想法..." rows="3"></textarea>
-              <div class="moments-post-images" id="moments-post-images"></div>
-              <div class="moments-post-actions">
-                <button class="settings-btn" id="moments-add-image-btn">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                  图片
-                </button>
-                <div style="flex:1"></div>
-                <button class="settings-btn" id="moments-cancel-post">取消</button>
-                <button class="settings-btn primary" id="moments-submit-post">发布</button>
-              </div>
+            <!-- FAB Post Button (bottom-right) -->
+            <div class="moments-fab" id="moments-fab-btn">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </div>
             <div class="moments-feed" id="moments-feed">
-              <div class="empty-hint" style="padding:40px 0;text-align:center">No moments yet</div>
+              <div class="empty-hint" style="padding:40px 0;text-align:center">\u8fd8\u6ca1\u6709\u52a8\u6001</div>
             </div>
           </div>
         </div>
@@ -162,7 +152,34 @@ export async function renderChat(container) {
                 <svg class="me-menu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
               </div>
             </div>
+          
+      <!-- Full-page Post Overlay (WeChat style) -->
+      <div class="moments-post-page hidden" id="moments-post-page">
+        <div class="moments-post-topbar">
+          <button class="moments-post-cancel" id="mpp-cancel">取消</button>
+          <button class="moments-post-submit" id="mpp-submit">发表</button>
+        </div>
+        <textarea class="moments-post-textarea" id="mpp-text" placeholder="这一刻的想法..." rows="5"></textarea>
+        <div class="moments-post-img-area" id="mpp-images">
+          <div class="moments-post-add-img" id="mpp-add-img">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           </div>
+        </div>
+        <div class="moments-post-options">
+          <div class="mpp-option-row">
+            <span class="mpp-option-label">发帖身份</span>
+            <select class="mpp-select" id="mpp-poster-select">
+              <option value="player">我自己</option>
+            </select>
+          </div>
+          <div class="mpp-option-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>所在位置</span>
+            <span class="mpp-option-value">即将开放</span>
+          </div>
+        </div>
+      </div>
+        </div>
         </div>
 
         <div class="chat-bottom-tabs">
@@ -464,61 +481,114 @@ export async function renderChat(container) {
     }
   });
 
-  // ── Moments Post Creation ──
-  let momentImages = [];
+  // ── Moments Post Creation (Full-page WeChat style) ──
+  let mppImages = [];
 
+  // Open post page from camera btn
   container.querySelector("#moments-camera-btn")?.addEventListener("click", () => {
-    const form = container.querySelector("#moments-post-form");
-    form.classList.toggle("hidden");
-    if (!form.classList.contains("hidden")) {
-      container.querySelector("#moments-post-text").value = "";
-      momentImages = [];
-      container.querySelector("#moments-post-images").innerHTML = "";
+    openPostPage(container);
+  });
+
+  // Open post page from FAB btn
+  container.querySelector("#moments-fab-btn")?.addEventListener("click", () => {
+    openPostPage(container);
+  });
+
+  async function openPostPage(ctr) {
+    const page = ctr.querySelector("#moments-post-page");
+    if (!page) return;
+    mppImages = [];
+    page.querySelector("#mpp-text").value = "";
+    page.querySelector("#mpp-images").innerHTML = '<div class="moments-post-add-img" id="mpp-add-img"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>';
+    // Populate poster select with characters
+    const sel = page.querySelector("#mpp-poster-select");
+    sel.innerHTML = '<option value="player">\u6211\u81ea\u5df1</option>';
+    const chars = await getAllCharacters();
+    chars.filter(c => !c.isNpc).forEach(c => {
+      sel.innerHTML += '<option value="char_' + c.id + '">' + (c.name || "\u89d2\u8272") + ' (\u89d2\u8272\u53d1\u5e16)</option>';
+      sel.innerHTML += '<option value="ai_' + c.id + '">' + (c.name || "\u89d2\u8272") + ' (AI\u751f\u6210)</option>';
+    });
+    page.classList.remove("hidden");
+    // Bind add-img
+    page.querySelector("#mpp-add-img")?.addEventListener("click", () => {
+      const inp = document.createElement("input");
+      inp.type = "file"; inp.accept = "image/*"; inp.multiple = true;
+      inp.onchange = (e) => {
+        Array.from(e.target.files).forEach(file => {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            mppImages.push(ev.target.result);
+            const thumb = document.createElement("img");
+            thumb.src = ev.target.result;
+            thumb.className = "moments-post-thumb";
+            const imgArea = page.querySelector("#mpp-images");
+            imgArea.insertBefore(thumb, imgArea.querySelector("#mpp-add-img"));
+          };
+          reader.readAsDataURL(file);
+        });
+      };
+      inp.click();
+    });
+  }
+
+  // Cancel post
+  container.querySelector("#mpp-cancel")?.addEventListener("click", () => {
+    container.querySelector("#moments-post-page")?.classList.add("hidden");
+  });
+
+  // Submit post
+  container.querySelector("#mpp-submit")?.addEventListener("click", async () => {
+    const page = container.querySelector("#moments-post-page");
+    const text = page.querySelector("#mpp-text").value.trim();
+    const posterVal = page.querySelector("#mpp-poster-select").value;
+    if (!text && mppImages.length === 0) { alert("\u8bf7\u8f93\u5165\u5185\u5bb9\u6216\u6dfb\u52a0\u56fe\u7247"); return; }
+
+    if (posterVal === "player") {
+      const moment = createMoment({ content: text, images: mppImages, owner: "player" });
+      await saveMoment(moment);
+    } else if (posterVal.startsWith("char_")) {
+      // Character posts directly with user-written content
+      const charId = posterVal.replace("char_", "");
+      const char = await getCharacter(charId);
+      const moment = createMoment({ content: text, images: mppImages, owner: char?.name || "Character" });
+      await saveMoment(moment);
+    } else if (posterVal.startsWith("ai_")) {
+      // AI generates the post in-character
+      const charId = posterVal.replace("ai_", "");
+      const char = await getCharacter(charId);
+      if (!char) { alert("\u89d2\u8272\u4e0d\u5b58\u5728"); return; }
+      const api = await getActiveApi();
+      if (!api) { alert("\u8bf7\u5148\u914d\u7f6eAPI"); return; }
+      page.querySelector("#mpp-submit").textContent = "\u751f\u6210\u4e2d...";
+      page.querySelector("#mpp-submit").disabled = true;
+      try {
+        const prompt = [
+          { role: "system", content: "You are " + char.name + ". " + (char.description || char.systemPrompt || "") + "\nWrite a short social media post (1-3 sentences) in-character. " + (text ? "Topic hint: " + text : "Post about whatever is on your mind.") + "\nReply ONLY with the post text, nothing else." },
+          { role: "user", content: "Write a social media post." }
+        ];
+        const reply = await chatStream(prompt, {}, null, null);
+        const moment = createMoment({ content: reply.trim(), images: mppImages, owner: char.name });
+        await saveMoment(moment);
+      } catch(e) {
+        alert("AI\u751f\u6210\u5931\u8d25: " + e.message);
+      } finally {
+        page.querySelector("#mpp-submit").textContent = "\u53d1\u8868";
+        page.querySelector("#mpp-submit").disabled = false;
+      }
     }
-  });
-
-  container.querySelector("#moments-cancel-post")?.addEventListener("click", () => {
-    container.querySelector("#moments-post-form").classList.add("hidden");
-  });
-
-  container.querySelector("#moments-add-image-btn")?.addEventListener("click", () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-    input.multiple = true;
-    input.onchange = (e) => {
-      Array.from(e.target.files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          momentImages.push(ev.target.result);
-          const imgContainer = container.querySelector("#moments-post-images");
-          const img = document.createElement("img");
-          img.src = ev.target.result;
-          img.className = "moments-post-thumb";
-          imgContainer.appendChild(img);
-        };
-        reader.readAsDataURL(file);
-      });
-    };
-    input.click();
-  });
-
-  container.querySelector("#moments-submit-post")?.addEventListener("click", async () => {
-    const text = container.querySelector("#moments-post-text").value.trim();
-    if (!text && momentImages.length === 0) { alert("请输入内容或添加图片"); return; }
-    const moment = createMoment({ content: text, images: momentImages, owner: "player" });
-    await saveMoment(moment);
-    container.querySelector("#moments-post-form").classList.add("hidden");
+    page.classList.add("hidden");
     await renderMomentsFeed(container);
   });
 
-  // Moments cover background upload
-  container.querySelector(".moments-cover")?.addEventListener("click", () => {
+  // Moments cover background upload (click on the cover area, NOT the info section)
+  container.querySelector(".moments-cover")?.addEventListener("click", (e) => {
+    // Don't trigger if clicking on the avatar/name area
+    if (e.target.closest(".moments-cover-info")) return;
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
-    input.onchange = (e) => {
-      const file = e.target.files[0];
+    input.onchange = (fe) => {
+      const file = fe.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -1571,7 +1641,7 @@ async function renderMomentsFeed(container) {
   const feed = container.querySelector("#moments-feed");
   const moments = await getAllMoments();
   if (moments.length === 0) {
-    feed.innerHTML = '<div class="empty-hint" style="padding:40px 0;text-align:center">No moments yet</div>';
+    feed.innerHTML = '<div class="empty-hint" style="padding:40px 0;text-align:center">\u8fd8\u6ca1\u6709\u52a8\u6001</div>';
     return;
   }
   feed.innerHTML = moments.map(m => {
@@ -1579,31 +1649,57 @@ async function renderMomentsFeed(container) {
     const imagesHtml = m.images && m.images.length > 0
       ? '<div class="moment-images">' + m.images.map(img => '<img class="moment-img" src="' + img + '">').join("") + '</div>'
       : "";
+    const likeCount = m.likes ? m.likes.length : 0;
+    const isLiked = m.likes && m.likes.includes("player");
     const commentsHtml = m.comments && m.comments.length > 0
-      ? '<div class="moment-comments">' + m.comments.map(c => '<div class="moment-comment"><span class="moment-comment-name">' + escHtml(c.name || "Anonymous") + ':</span> ' + escHtml(c.text) + '</div>').join("") + '</div>'
+      ? '<div class="moment-comments">' + m.comments.map((c, ci) =>
+          '<div class="moment-comment" data-cidx="' + ci + '" data-mid="' + m.id + '">' +
+            '<span class="moment-comment-name">' + escHtml(c.name || "Anonymous") + ':</span> ' +
+            escHtml(c.text) +
+            (c.name !== "Me" ? '<span class="comment-actions"><button class="comment-del-btn" data-mid="' + m.id + '" data-cidx="' + ci + '" title="\u5220\u9664">\u00d7</button><button class="comment-reroll-btn" data-mid="' + m.id + '" data-cidx="' + ci + '" title="\u91cdroll">\u21bb</button></span>' : '<span class="comment-actions"><button class="comment-del-btn" data-mid="' + m.id + '" data-cidx="' + ci + '" title="\u5220\u9664">\u00d7</button></span>') +
+          '</div>'
+        ).join("") + '</div>'
       : "";
+    const ownerName = m.owner === "player" ? (localStorage.getItem("user-nickname") || "Me") : m.owner;
     return '<div class="moment-card" data-momentid="' + m.id + '">' +
       '<div class="moment-header">' +
         '<div class="moment-avatar"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>' +
-        '<div class="moment-header-info"><span class="moment-owner">' + escHtml(m.owner === "player" ? "Me" : m.owner) + '</span><span class="moment-time">' + timeStr + '</span></div>' +
+        '<div class="moment-header-info"><span class="moment-owner">' + escHtml(ownerName) + '</span></div>' +
       '</div>' +
       (m.content ? '<div class="moment-text">' + escHtml(m.content) + '</div>' : '') +
       imagesHtml +
-      '<div class="moment-actions">' +
-        '<button class="moment-like-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>' +
-        '<button class="moment-comment-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>' +
-        '<button class="moment-ai-comment-btn" data-momentid="' + m.id + '" title="Ask characters to comment"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></button>' +
-        '<button class="moment-delete-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+      '<div class="moment-footer"><span class="moment-time">' + timeStr + '</span>' +
+        '<div class="moment-action-bar">' +
+          '<button class="moment-action-btn moment-like-btn' + (isLiked ? ' liked' : '') + '" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="' + (isLiked ? '#636366' : 'none') + '" stroke="#636366" stroke-width="1.4"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' + (likeCount > 0 ? ' ' + likeCount : '') + '</button>' +
+          '<button class="moment-action-btn moment-comment-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>' +
+          '<button class="moment-action-btn moment-ai-comment-btn" data-momentid="' + m.id + '" title="\u89d2\u8272\u8bc4\u8bba"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></button>' +
+          '<button class="moment-action-btn moment-delete-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+        '</div>' +
       '</div>' +
       commentsHtml +
     '</div>';
   }).join("");
 
-  // Bind moment actions
+  // ── Like toggle ──
+  feed.querySelectorAll(".moment-like-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const mid = btn.dataset.momentid;
+      const moment = await getMoment(mid);
+      if (!moment) return;
+      if (!moment.likes) moment.likes = [];
+      const idx = moment.likes.indexOf("player");
+      if (idx >= 0) moment.likes.splice(idx, 1);
+      else moment.likes.push("player");
+      await saveMoment(moment);
+      await renderMomentsFeed(container);
+    });
+  });
+
+  // ── Comment (manual) ──
   feed.querySelectorAll(".moment-comment-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const mid = btn.dataset.momentid;
-      const text = prompt("Add a comment:");
+      const text = prompt("\u8f93\u5165\u8bc4\u8bba:");
       if (!text || !text.trim()) return;
       const moment = await getMoment(mid);
       if (!moment) return;
@@ -1614,45 +1710,87 @@ async function renderMomentsFeed(container) {
     });
   });
 
+  // ── AI comment (all characters comment) ──
   feed.querySelectorAll(".moment-ai-comment-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
       const mid = btn.dataset.momentid;
       const moment = await getMoment(mid);
       if (!moment) return;
       const chars = await getAllCharacters();
-      if (chars.length === 0) { alert("No characters to comment"); return; }
-      // Let each character comment using AI
+      if (chars.length === 0) { alert("\u6ca1\u6709\u89d2\u8272\u53ef\u4ee5\u8bc4\u8bba"); return; }
       btn.disabled = true;
-      btn.textContent = "...";
+      const origHtml = btn.innerHTML;
+      btn.innerHTML = "...";
       try {
         const api = await getActiveApi();
-        if (!api) { alert("Configure API first"); return; }
-        for (const char of chars.slice(0, 3)) {
-          const prompt = [
-            { role: "system", content: "You are " + (char.name || "a character") + ". " + (char.description || char.systemPrompt || "") + "\nThe user posted on social media: \"" + (moment.content || "") + "\"\nWrite a short, in-character comment (1-2 sentences). Reply ONLY with the comment text." },
+        if (!api) { alert("\u8bf7\u5148\u914d\u7f6eAPI"); return; }
+        for (const char of chars.filter(c => !c.isNpc).slice(0, 3)) {
+          const p = [
+            { role: "system", content: "You are " + char.name + ". " + (char.description || char.systemPrompt || "") + "\nThe user posted on social media: \"" + (moment.content || "") + "\"\nWrite a short, in-character comment (1-2 sentences). Reply ONLY with the comment text." },
             { role: "user", content: "Please comment on this post." }
           ];
           try {
-            const reply = await chatStream(prompt, {}, null, null);
+            const reply = await chatStream(p, {}, null, null);
             if (!moment.comments) moment.comments = [];
-            moment.comments.push({ name: char.name, text: reply.trim(), time: Date.now() });
-          } catch(e) { console.error("Comment gen failed for " + char.name, e); }
+            moment.comments.push({ name: char.name, text: reply.trim(), time: Date.now(), charId: char.id });
+          } catch(e) { console.error("Comment gen failed", e); }
         }
         await saveMoment(moment);
         await renderMomentsFeed(container);
-      } catch(e) {
-        console.error("AI comment failed", e);
-      } finally {
-        btn.disabled = false;
-      }
+      } catch(e) { console.error("AI comment failed", e); }
+      finally { btn.disabled = false; btn.innerHTML = origHtml; }
     });
   });
 
+  // ── Delete moment ──
   feed.querySelectorAll(".moment-delete-btn").forEach(btn => {
     btn.addEventListener("click", async () => {
-      if (!confirm("Delete this moment?")) return;
+      if (!confirm("\u5220\u9664\u8fd9\u6761\u52a8\u6001\uff1f")) return;
       await deleteMoment(btn.dataset.momentid);
       await renderMomentsFeed(container);
+    });
+  });
+
+  // ── Delete individual comment ──
+  feed.querySelectorAll(".comment-del-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const mid = btn.dataset.mid;
+      const cidx = parseInt(btn.dataset.cidx);
+      const moment = await getMoment(mid);
+      if (!moment || !moment.comments) return;
+      moment.comments.splice(cidx, 1);
+      await saveMoment(moment);
+      await renderMomentsFeed(container);
+    });
+  });
+
+  // ── Reroll individual AI comment ──
+  feed.querySelectorAll(".comment-reroll-btn").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      const mid = btn.dataset.mid;
+      const cidx = parseInt(btn.dataset.cidx);
+      const moment = await getMoment(mid);
+      if (!moment || !moment.comments || !moment.comments[cidx]) return;
+      const oldComment = moment.comments[cidx];
+      const charName = oldComment.name;
+      const chars = await getAllCharacters();
+      const char = chars.find(c => c.name === charName);
+      if (!char) { alert("\u627e\u4e0d\u5230\u89d2\u8272: " + charName); return; }
+      btn.textContent = "...";
+      try {
+        const api = await getActiveApi();
+        if (!api) { alert("\u8bf7\u5148\u914d\u7f6eAPI"); return; }
+        const p = [
+          { role: "system", content: "You are " + char.name + ". " + (char.description || char.systemPrompt || "") + "\nThe user posted on social media: \"" + (moment.content || "") + "\"\nWrite a different short, in-character comment (1-2 sentences). Reply ONLY with the comment text." },
+          { role: "user", content: "Write a new comment, different from: \"" + oldComment.text + "\"" }
+        ];
+        const reply = await chatStream(p, {}, null, null);
+        moment.comments[cidx] = { name: charName, text: reply.trim(), time: Date.now(), charId: char.id };
+        await saveMoment(moment);
+        await renderMomentsFeed(container);
+      } catch(e) { alert("\u91cdroll\u5931\u8d25: " + e.message); }
     });
   });
 }
