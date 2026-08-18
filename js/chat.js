@@ -733,6 +733,76 @@ export async function renderChat(container) {
   }
 }
 
+
+/* ── 后台自动发帖 (Auto-Post Timer) ── */
+let autoPostTimerId = null;
+const AUTO_POST_INTERVAL = 5 * 60 * 1000; // 5分钟检查一次
+
+function startAutoPostTimer() {
+  if (autoPostTimerId) return; // 已在运行
+  console.log("[AutoPost] Timer started, interval:", AUTO_POST_INTERVAL / 1000, "s");
+  autoPostTimerId = setInterval(runAutoPost, AUTO_POST_INTERVAL);
+}
+
+function stopAutoPostTimer() {
+  if (autoPostTimerId) {
+    clearInterval(autoPostTimerId);
+    autoPostTimerId = null;
+    console.log("[AutoPost] Timer stopped");
+  }
+}
+
+async function runAutoPost() {
+  try {
+    const allChars = await getAllCharacters();
+    const autoChars = allChars.filter(c => c.autoPost && !c.isNpc);
+    if (autoChars.length === 0) return;
+
+    const api = await getActiveApi();
+    if (!api) return; // 没配置API就跳过
+
+    for (const char of autoChars) {
+      // 检查上次发帖时间（避免太频繁）
+      const lastKey = "autopost-last-" + char.id;
+      const lastTime = parseInt(localStorage.getItem(lastKey) || "0", 10);
+      const now = Date.now();
+      if (now - lastTime < AUTO_POST_INTERVAL) continue;
+
+      // 投骰子
+      const chance = char.autoPostChance || 30;
+      const roll = Math.random() * 100;
+      console.log("[AutoPost]", char.name, "- roll:", roll.toFixed(1), "/ chance:", chance);
+      if (roll > chance) continue;
+
+      // 生成发帖
+      console.log("[AutoPost] Generating post for", char.name);
+      try {
+        const sysContent = "You are " + char.name + ". " + (char.description || char.systemPrompt || "") + (char.personality ? "\nPersonality: " + char.personality : "") + "\nWrite a short social media post (1-3 sentences) in character. Stay strictly in character. Post about your daily life, thoughts, feelings, or observations. Reply with ONLY the post text, nothing else.";
+        const messages = [
+          { role: "system", content: sysContent },
+          { role: "user", content: "Write a social media post as " + char.name + ". It should feel natural and spontaneous." }
+        ];
+        const reply = await chatStream(messages, {}, null, null);
+        const cleanReply = reply.replace(/^["“]|["”]$/g, "").trim();
+        if (cleanReply) {
+          const moment = createMoment({ content: cleanReply, images: [], owner: char.name });
+          await saveMoment(moment);
+          localStorage.setItem(lastKey, String(now));
+          console.log("[AutoPost] Posted for", char.name, ":", cleanReply.substring(0, 50));
+          bus.emit("moments:updated");
+        }
+      } catch(e) {
+        console.error("[AutoPost] Failed for", char.name, e);
+      }
+    }
+  } catch(e) {
+    console.error("[AutoPost] Error:", e);
+  }
+}
+
+// 启动定时器（模块加载时就开始）
+startAutoPostTimer();
+
 /* ── 会话列表渲染（Session List） ── */
 async function renderSessionList(container) {
   const list = container.querySelector("#session-list");

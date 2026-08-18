@@ -46,6 +46,8 @@ export function createCharacter(overrides = {}) {
     parentId: null,
     variantLabel: "",
     isNpc: false,
+    autoPost: false,
+    autoPostChance: 30,
     tags: [],
     createdAt: Date.now(),
     updatedAt: Date.now(),

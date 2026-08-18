@@ -254,6 +254,20 @@ export async function renderCharacter(container) {
             <option value="">Default</option>
           </select>
 
+          <label class="field-label">朋友圈自动发帖</label>
+          <div class="autopost-row">
+            <label class="toggle-switch">
+              <input type="checkbox" id="char-autopost-toggle">
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="autopost-label" id="autopost-status">关闭</span>
+          </div>
+          <div class="autopost-chance-row" id="autopost-chance-row" style="display:none">
+            <label class="field-label">发帖概率 <span id="autopost-chance-val">30%</span></label>
+            <input type="range" class="field-range" id="char-autopost-chance" min="5" max="100" step="5" value="30">
+            <div class="autopost-desc">每次检查时，角色有此概率发朋友圈</div>
+          </div>
+
           <div class="form-actions">
             <button class="settings-btn primary" id="char-save-btn">Save</button>
             <button class="settings-btn danger hidden" id="char-delete-btn">Delete</button>
@@ -547,6 +561,23 @@ function bindEvents(container) {
       };
       reader.readAsDataURL(file);
     });
+
+  // Auto-post toggle interactivity
+  container.querySelector("#char-autopost-toggle")?.addEventListener("change", (e) => {
+    const status = container.querySelector("#autopost-status");
+    const row = container.querySelector("#autopost-chance-row");
+    if (e.target.checked) {
+      status.textContent = "\u5f00\u542f";
+      row.style.display = "block";
+    } else {
+      status.textContent = "\u5173\u95ed";
+      row.style.display = "none";
+    }
+  });
+  container.querySelector("#char-autopost-chance")?.addEventListener("input", (e) => {
+    const valEl = container.querySelector("#autopost-chance-val");
+    if (valEl) valEl.textContent = e.target.value + "%";
+  });
 
   /* NPC Generator — 返回 */
   container.querySelector("#npc-gen-back").addEventListener("click", () => {
@@ -858,6 +889,22 @@ function fillForm(container, c) {
   container.querySelector("#char-desc").value =
     c.description || c.systemPrompt || "";
   container.querySelector("#char-first-msg").value = c.firstMessage || "";
+
+  // Auto-post settings
+  const apToggle = container.querySelector("#char-autopost-toggle");
+  const apChance = container.querySelector("#char-autopost-chance");
+  const apStatus = container.querySelector("#autopost-status");
+  const apRow = container.querySelector("#autopost-chance-row");
+  if (apToggle) {
+    apToggle.checked = !!c.autoPost;
+    apStatus.textContent = c.autoPost ? "\u5f00\u542f" : "\u5173\u95ed";
+    apRow.style.display = c.autoPost ? "block" : "none";
+  }
+  if (apChance) {
+    apChance.value = c.autoPostChance || 30;
+    const valEl = container.querySelector("#autopost-chance-val");
+    if (valEl) valEl.textContent = (c.autoPostChance || 30) + "%";
+  }
 }
 
 function readForm(container) {
@@ -872,6 +919,8 @@ function readForm(container) {
     ).trim(),
     isNpc: currentIsNpc,
     boundMaskId: maskVal || null,
+    autoPost: container.querySelector("#char-autopost-toggle")?.checked || false,
+    autoPostChance: parseInt(container.querySelector("#char-autopost-chance")?.value || "30", 10),
   };
 }
 /* ───────── 导入处理 ───────── */
