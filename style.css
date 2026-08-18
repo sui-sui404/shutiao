@@ -2455,6 +2455,7 @@ html, body {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  max-width: 100%;
 }
 
 .lore-list-view {
@@ -2462,6 +2463,7 @@ html, body {
   flex-direction: column;
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
   padding-bottom: 20px;
 }
 
@@ -2663,10 +2665,11 @@ html, body {
 }
 
 .lore-bottom-actions {
-  padding: 16px;
+  padding: 12px 0;
   display: flex;
   gap: 8px;
   flex-wrap: nowrap;
+  justify-content: center;
   position: sticky;
   bottom: 0;
   background: #F2F2F7;
@@ -2675,9 +2678,11 @@ html, body {
 }
 .lore-bottom-actions .settings-btn {
   flex: 1;
+  max-width: 160px;
   font-size: 13px;
   white-space: nowrap;
   padding: 10px 8px;
+  text-align: center;
 }
 
 /* Lore Edit View */
@@ -2686,6 +2691,9 @@ html, body {
   flex-direction: column;
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 4px;
+  box-sizing: border-box;
 }
 
 .lore-edit-header {
@@ -2709,6 +2717,14 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+.lore-edit-form .field-input,
+.lore-edit-form .field-textarea,
+.lore-edit-form select {
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .lore-edit-row {
@@ -2727,6 +2743,8 @@ html, body {
   align-items: center;
   justify-content: space-between;
   padding: 8px 0;
+  overflow: visible;
+  min-width: 0;
 }
 .lore-card-toggle {
   flex-shrink: 0;

@@ -118,7 +118,7 @@ export async function renderLore(container) {
               <polyline points="17 8 12 3 7 8"/>
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            导入 JSON
+            导入
           </button>
           <button class="settings-btn" id="lore-export-btn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -128,7 +128,7 @@ export async function renderLore(container) {
               <polyline points="7 10 12 15 17 10"/>
               <line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
-            导出 JSON
+            导出
           </button>
         </div>
       </div>
