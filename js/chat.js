@@ -62,7 +62,7 @@ export async function renderChat(container) {
         <!-- Contacts View -->
         <div class="chat-contacts-view hidden" id="chat-contacts-view">
           <div class="contacts-header">
-            <span class="contacts-title">Contacts</span>
+            <span class="contacts-title">联系人</span>
             <button class="chat-new-btn" id="add-contact-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           </div>
           <div class="contacts-list" id="contacts-list"><div class="empty-hint">还没有联系人，点 + 创建角色</div></div>
@@ -71,7 +71,7 @@ export async function renderChat(container) {
                 <!-- Moments View -->
         <div class="chat-moments-view hidden" id="chat-moments-view">
           <div class="contacts-header">
-            <span class="contacts-title" style="visibility:hidden">Moments</span>
+            <span class="contacts-title" style="visibility:hidden">朋友圈</span>
             <button class="chat-new-btn" id="moments-camera-btn">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             </button>
@@ -173,19 +173,19 @@ export async function renderChat(container) {
         <div class="chat-bottom-tabs">
           <button class="chat-tab active" data-tab="chats">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>Chats</span>
+            <span>聊天</span>
           </button>
           <button class="chat-tab" data-tab="contacts">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span>Contacts</span>
+            <span>联系人</span>
           </button>
           <button class="chat-tab" data-tab="moments">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            <span>Moments</span>
+            <span>朋友圈</span>
           </button>
           <button class="chat-tab" data-tab="me">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>Me</span>
+            <span>我</span>
           </button>
         </div>
       </div>
@@ -194,7 +194,7 @@ export async function renderChat(container) {
       <div class="char-picker-overlay hidden" id="char-picker-overlay">
         <div class="char-picker-sheet">
           <div class="char-picker-header">
-            <span class="char-picker-title">Select Character</span>
+            <span class="char-picker-title">选择角色</span>
             <button class="modal-close" id="char-picker-close">
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
