@@ -3644,3 +3644,53 @@ html, body {
   padding: 8px 16px;
   font-size: 14px;
 }
+
+/* ── Character Lore Binding ── */
+.char-lore-bind {
+  margin-bottom: 16px;
+}
+.char-lore-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid rgba(0,0,0,.08);
+  border-radius: 10px;
+  background: #F2F2F7;
+}
+.char-lore-bound-label {
+  padding: 8px 12px 4px;
+  font-size: 12px;
+  color: #AEAEB2;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.char-lore-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(0,0,0,.04);
+  font-size: 14px;
+}
+.char-lore-item.bound {
+  background: rgba(52,199,89,.06);
+}
+.char-lore-name {
+  color: #1D1D1F;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.char-lore-bind-btn, .char-lore-unbind {
+  background: none;
+  border: 1px solid rgba(0,0,0,.12);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #636366;
+  white-space: nowrap;
+}
+.char-lore-bind-btn:active, .char-lore-unbind:active {
+  background: rgba(0,0,0,.06);
+}

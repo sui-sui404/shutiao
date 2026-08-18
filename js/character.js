@@ -10,6 +10,10 @@ import {
   deleteCharacter,
   getAllMasks,
   getActiveApi,
+  getAllLoreEntries,
+  getLoreByCharacter,
+  saveLoreEntry,
+  getLoreEntry as db_getLoreEntry,
 } from "./db.js";
 import { createCharacter } from "./models.js";
 import { chatStream } from "./api.js";
@@ -193,19 +197,17 @@ export async function renderCharacter(container) {
       <!-- 列表视图 -->
       <div class="char-list-view" id="char-list-view">
         <div class="char-filter-bar" id="char-filter-bar">
-          <button class="char-filter-btn active" data-filter="all">All</button>
-          <button class="char-filter-btn" data-filter="characters">Characters</button>
-          <button class="char-filter-btn" data-filter="npcs">NPCs</button>
+          <button class="char-filter-btn active" data-filter="all">全部</button>
+          <button class="char-filter-btn" data-filter="characters">角色</button>
+          <button class="char-filter-btn" data-filter="npcs">NPC</button>
         </div>
         <div class="char-list" id="char-list"></div>
         <div class="char-bottom-actions">
           <button class="settings-btn primary" id="char-create-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Create
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>创建
           </button>
           <button class="settings-btn" id="char-import-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Import
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>导入
           </button>
           <button class="settings-btn" id="char-npc-gen-btn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -224,35 +226,40 @@ export async function renderCharacter(container) {
           <div style="width:36px"></div>
         </div>
         <div class="char-edit-form">
-          <label class="field-label">Type</label>
+          <label class="field-label">类型</label>
           <div class="char-type-toggle" id="char-type-toggle">
-            <button class="char-type-btn active" data-type="character">Character</button>
+            <button class="char-type-btn active" data-type="character">角色</button>
             <button class="char-type-btn" data-type="npc">NPC</button>
           </div>
 
-          <label class="field-label">Name</label>
-          <input type="text" class="field-input" id="char-name" placeholder="Enter character name" />
+          <label class="field-label">名字</label>
+          <input type="text" class="field-input" id="char-name" placeholder="输入角色名字" />
 
-          <label class="field-label">Avatar</label>
+          <label class="field-label">头像</label>
           <input type="hidden" id="char-avatar" value="" />
           <div class="char-avatar-upload" id="char-avatar-upload">
             <div class="char-avatar-preview" id="char-avatar-preview">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             </div>
-            <span style="font-size:13px;color:#AEAEB2">Tap to upload avatar</span>
+            <span style="font-size:13px;color:#AEAEB2">点击上传头像</span>
           </div>
           <input type="file" id="char-avatar-file" accept="image/*" style="display:none" />
 
-          <label class="field-label">Description</label>
-          <textarea class="field-input field-textarea" id="char-desc" placeholder="Paste character card content here" rows="10"></textarea>
+          <label class="field-label">描述</label>
+          <textarea class="field-input field-textarea" id="char-desc" placeholder="粘贴角色卡内容" rows="10"></textarea>
 
-          <label class="field-label">First Message</label>
-          <textarea class="field-input field-textarea" id="char-first-msg" placeholder="Opening line (optional)" rows="4"></textarea>
+          <label class="field-label">开场白</label>
+          <textarea class="field-input field-textarea" id="char-first-msg" placeholder="开场白（可选）" rows="4"></textarea>
 
-          <label class="field-label">Mask Binding</label>
+          <label class="field-label">面具绑定</label>
           <select class="field-input" id="char-mask-select">
-            <option value="">Default</option>
+            <option value="">默认</option>
           </select>
+
+          <label class="field-label">关联世界书</label>
+          <div class="char-lore-bind" id="char-lore-bind">
+            <div class="char-lore-list" id="char-lore-list">加载中...</div>
+          </div>
 
           <label class="field-label">朋友圈自动发帖</label>
           <div class="autopost-row">
@@ -297,12 +304,11 @@ export async function renderCharacter(container) {
 
           <!-- AI Generate Section -->
           <div class="npc-ai-section visible" id="npc-ai-section">
-            <label class="field-label">描述你想生成的NPC（例如：沈莲生的爸爸，安分市井店老板）</label>
+            <label class="field-label">描述你想生成的NPC（例如：角色的爸爸，市井小店老板）</label>
             <textarea class="field-input field-textarea" id="npc-ai-prompt" placeholder="例如：沈莲生的爸爸，安分市井店老板" rows="4"></textarea>
             <div class="form-actions">
               <button class="settings-btn primary" id="npc-ai-generate-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                Generate
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>生成
               </button>
             </div>
             <div class="npc-gen-status" id="npc-gen-status"></div>
@@ -366,9 +372,9 @@ async function renderCharList(container) {
   if (chars.length === 0) {
     const msg =
       currentFilter === "npcs"
-        ? "No NPCs yet. Use NPC Generator to create one."
+        ? "\u8fd8\u6ca1\u6709NPC\uff0c\u53bb\u751f\u6210\u4e00\u4e2a\u5427"
         : currentFilter === "characters"
-        ? "No characters yet. Tap Create or Import to add one."
+        ? "\u8fd8\u6ca1\u6709\u89d2\u8272\uff0c\u70b9\u521b\u5efa\u6216\u5bfc\u5165\u6dfb\u52a0"
         : "No characters yet. Tap the buttons below to get started.";
     list.innerHTML = `<div class="empty-hint">${msg}</div>`;
     return;
@@ -427,7 +433,7 @@ function bindEvents(container) {
     longPressTimer = setTimeout(async () => {
       longPressTimer = null;
       const char = await getCharacter(id);
-      if (char && confirm(`Delete "${char.name}"?`)) {
+      if (char && confirm(`\u786e\u5b9a\u5220\u9664 "${char.name}" \u5417\uff1f`)) {
         await deleteCharacter(id);
         bus.emit("character:deleted", id);
         await renderCharList(container);
@@ -476,7 +482,7 @@ function bindEvents(container) {
         await handleImportFile(file);
         await renderCharList(container);
       } catch (err) {
-        alert("Import failed: " + err.message);
+        alert("\u5bfc\u5165\u5931\u8d25: " + err.message);
       }
     };
     input.click();
@@ -727,7 +733,7 @@ async function handleAiGenerate(container) {
   genBtn.disabled = true;
   previewEl.classList.remove("visible");
   statusEl.className = "npc-gen-status";
-  statusEl.innerHTML = `<span class="npc-gen-spinner"></span>Generating...`;
+  statusEl.innerHTML = `<span class="npc-gen-spinner"></span>生成中...`;
 
   const systemPrompt = [
     "You are an NPC generator for a role-playing scenario.",
@@ -799,14 +805,19 @@ async function openEditView(container, charId) {
     if (charId) {
       const char = await getCharacter(charId);
       currentIsNpc = !!(char && char.isNpc);
-      titleEl.textContent = currentIsNpc ? "Edit NPC" : "Edit Character";
+      titleEl.textContent = currentIsNpc ? "Edit NPC" : "\u7f16\u8f91\u89d2\u8272";
       deleteBtn.classList.remove("hidden");
       if (char) fillForm(container, char);
+      // Populate world book bindings
+      await populateCharLore(container, charId);
     } else {
       currentIsNpc = false;
-      titleEl.textContent = "Create Character";
+      titleEl.textContent = "创建角色";
       deleteBtn.classList.add("hidden");
       fillForm(container, createCharacter());
+      // Clear world book section for new char
+      const loreList = container.querySelector("#char-lore-list");
+      if (loreList) loreList.innerHTML = '<div class="empty-hint">\u4fdd\u5b58\u540e\u53ef\u7ed1\u5b9a\u4e16\u754c\u4e66</div>';
     }
 
     updateTypeToggle(container);
@@ -903,6 +914,61 @@ async function populateMaskDropdown(container, charId) {
 }
 
 /* ───────── 表单读写 ───────── */
+
+async function populateCharLore(container, charId) {
+  const listEl = container.querySelector("#char-lore-list");
+  if (!listEl) return;
+  try {
+    const allLore = await getAllLoreEntries();
+    const charLore = allLore.filter(l => l.characterId === charId);
+    const otherLore = allLore.filter(l => !l.characterId || l.characterId !== charId);
+    
+    if (allLore.length === 0) {
+      listEl.innerHTML = '<div class="empty-hint">\u8fd8\u6ca1\u6709\u4e16\u754c\u4e66\uff0c\u8bf7\u5148\u5728 Lore \u91cc\u521b\u5efa</div>';
+      return;
+    }
+    
+    let html = '';
+    if (charLore.length > 0) {
+      html += '<div class="char-lore-bound-label">\u5df2\u7ed1\u5b9a</div>';
+      charLore.forEach(l => {
+        html += '<div class="char-lore-item bound" data-loreid="' + l.id + '"><span class="char-lore-name">' + (l.title || l.keywords?.join(", ") || "\u672a\u547d\u540d") + '</span><button class="char-lore-unbind" data-loreid="' + l.id + '">\u53d6\u6d88\u7ed1\u5b9a</button></div>';
+      });
+    }
+    if (otherLore.length > 0) {
+      html += '<div class="char-lore-bound-label">\u53ef\u7ed1\u5b9a</div>';
+      otherLore.forEach(l => {
+        html += '<div class="char-lore-item" data-loreid="' + l.id + '"><span class="char-lore-name">' + (l.title || l.keywords?.join(", ") || "\u672a\u547d\u540d") + '</span><button class="char-lore-bind-btn" data-loreid="' + l.id + '">\u7ed1\u5b9a</button></div>';
+      });
+    }
+    listEl.innerHTML = html;
+    
+    // Bind/unbind handlers
+    listEl.querySelectorAll(".char-lore-bind-btn").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const entry = await db_getLoreEntry(btn.dataset.loreid);
+        if (entry) {
+          entry.characterId = charId;
+          await saveLoreEntry(entry);
+          await populateCharLore(container, charId);
+        }
+      });
+    });
+    listEl.querySelectorAll(".char-lore-unbind").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const entry = await db_getLoreEntry(btn.dataset.loreid);
+        if (entry) {
+          entry.characterId = "";
+          await saveLoreEntry(entry);
+          await populateCharLore(container, charId);
+        }
+      });
+    });
+  } catch(e) {
+    listEl.innerHTML = '<div class="empty-hint">\u52a0\u8f7d\u5931\u8d25</div>';
+    console.error(e);
+  }
+}
 
 function fillForm(container, c) {
   const nameEl = container.querySelector("#char-name");
