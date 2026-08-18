@@ -95,9 +95,36 @@ export async function renderChat(container) {
             </div>
           </div>
 
-          <!-- FAB Post Button -->
+          <!-- FAB Post Button (角色发帖) -->
           <div class="moments-fab" id="moments-fab-btn">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+
+          <!-- Character Post Picker Overlay -->
+          <div class="char-post-picker hidden" id="char-post-picker">
+            <div class="char-post-picker-header">
+              <button class="char-post-picker-close" id="cpp-close">×</button>
+              <span class="char-post-picker-title">选择角色发帖</span>
+            </div>
+            <div class="char-post-picker-list" id="cpp-list">
+              <div class="empty-hint">还没有角色，请先在 Character 里创建</div>
+            </div>
+          </div>
+
+          <!-- AI Post Preview Page -->
+          <div class="ai-post-preview hidden" id="ai-post-preview">
+            <div class="moments-post-topbar">
+              <button class="moments-post-cancel" id="aipp-cancel">取消</button>
+              <span class="aipp-char-name" id="aipp-char-name"></span>
+              <button class="moments-post-submit" id="aipp-confirm">确认发表</button>
+            </div>
+            <div class="aipp-hint-area">
+              <textarea class="aipp-hint" id="aipp-hint" placeholder="给AI提示（可留空，AI自由发挥）…" rows="2"></textarea>
+              <button class="aipp-generate-btn" id="aipp-generate">生成内容</button>
+            </div>
+            <div class="aipp-preview-area" id="aipp-preview">
+              <div class="empty-hint" style="padding:30px 0;text-align:center">点击“生成内容”让AI以角色身份写一条朋友圈</div>
+            </div>
           </div>
 
           <!-- Full-page Post Overlay (WeChat style) -->
@@ -113,12 +140,6 @@ export async function renderChat(container) {
               </div>
             </div>
             <div class="moments-post-options">
-              <div class="mpp-option-row">
-                <span class="mpp-option-label">发帖身份</span>
-                <select class="mpp-select" id="mpp-poster-select">
-                  <option value="player">我自己</option>
-                </select>
-              </div>
               <div class="mpp-option-row">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                 <span>所在位置</span>
@@ -501,10 +522,111 @@ export async function renderChat(container) {
     openPostPage(container);
   });
 
-  // Open post page from FAB btn
-  container.querySelector("#moments-fab-btn")?.addEventListener("click", () => {
-    console.log("[MOMENTS] FAB button clicked");
-    openPostPage(container);
+  // Open character post picker from FAB btn
+  container.querySelector("#moments-fab-btn")?.addEventListener("click", async () => {
+    console.log("[MOMENTS] FAB button clicked - opening char picker");
+    const picker = container.querySelector("#char-post-picker");
+    if (!picker) return;
+    const list = picker.querySelector("#cpp-list");
+    try {
+      const allChars = await getAllCharacters();
+      const mainChars = allChars.filter(c => !c.isNpc);
+      if (mainChars.length === 0) {
+        list.innerHTML = '<div class="empty-hint">\u8fd8\u6ca1\u6709\u89d2\u8272\uff0c\u8bf7\u5148\u5728 Character \u91cc\u521b\u5efa</div>';
+      } else {
+        let html = '';
+        for (const ch of mainChars) {
+          const npcs = allChars.filter(c => c.isNpc && c.parentId === ch.id);
+          html += '<div class="cpp-group">';
+          html += '<div class="cpp-group-title">' + (ch.name || '\u89d2\u8272') + '</div>';
+          html += '<div class="cpp-item" data-charid="' + ch.id + '">';
+          html += '<span class="cpp-item-name">' + (ch.name || '\u89d2\u8272') + '</span>';
+          html += '<span class="cpp-item-tag">\u89d2\u8272\u53d1\u5e16</span>';
+          html += '</div>';
+          for (const npc of npcs) {
+            html += '<div class="cpp-item cpp-item-npc" data-charid="' + npc.id + '">';
+            html += '<span class="cpp-item-name">' + (npc.name || 'NPC') + '</span>';
+            html += '<span class="cpp-item-tag">NPC\u53d1\u5e16</span>';
+            html += '</div>';
+          }
+          html += '</div>';
+        }
+        list.innerHTML = html;
+      }
+    } catch(e) {
+      list.innerHTML = '<div class="empty-hint">\u52a0\u8f7d\u89d2\u8272\u5931\u8d25</div>';
+      console.error(e);
+    }
+    picker.classList.remove("hidden");
+  });
+
+  // Close character picker
+  container.querySelector("#cpp-close")?.addEventListener("click", () => {
+    container.querySelector("#char-post-picker")?.classList.add("hidden");
+  });
+
+  // Character selected -> open AI post preview
+  container.querySelector("#cpp-list")?.addEventListener("click", async (e) => {
+    const item = e.target.closest(".cpp-item");
+    if (!item) return;
+    const charId = item.dataset.charid;
+    const char = await getCharacter(charId);
+    if (!char) return;
+    container.querySelector("#char-post-picker").classList.add("hidden");
+    const preview = container.querySelector("#ai-post-preview");
+    preview.querySelector("#aipp-char-name").textContent = char.name || "\u89d2\u8272";
+    preview.querySelector("#aipp-hint").value = "";
+    preview.querySelector("#aipp-preview").innerHTML = '<div class="empty-hint" style="padding:30px 0;text-align:center">\u70b9\u51fb\u201c\u751f\u6210\u5185\u5bb9\u201d\u8ba9AI\u4ee5\u89d2\u8272\u8eab\u4efd\u5199\u4e00\u6761\u670b\u53cb\u5708</div>';
+    preview.dataset.charid = charId;
+    preview.classList.remove("hidden");
+  });
+
+  // Cancel AI post
+  container.querySelector("#aipp-cancel")?.addEventListener("click", () => {
+    container.querySelector("#ai-post-preview")?.classList.add("hidden");
+  });
+
+  // Generate AI post content
+  container.querySelector("#aipp-generate")?.addEventListener("click", async () => {
+    const preview = container.querySelector("#ai-post-preview");
+    const charId = preview.dataset.charid;
+    const char = await getCharacter(charId);
+    if (!char) { alert("\u89d2\u8272\u4e0d\u5b58\u5728"); return; }
+    const api = await getActiveApi();
+    if (!api) { alert("\u8bf7\u5148\u5728 Settings \u914d\u7f6e API"); return; }
+    const hint = preview.querySelector("#aipp-hint").value.trim();
+    const btn = preview.querySelector("#aipp-generate");
+    btn.textContent = "\u751f\u6210\u4e2d...";
+    btn.disabled = true;
+    try {
+      const sysContent = "You are " + char.name + ". " + (char.description || char.systemPrompt || "") + (char.personality ? "\nPersonality: " + char.personality : "") + "\nWrite a short social media post (1-3 sentences) in character. Stay strictly in character, do not break character or add OOC content." + (hint ? "\nTopic/hint from user: " + hint : " Post about whatever is on your mind.") + "\nReply with ONLY the post text, nothing else. No quotes, no prefixes.";
+      const messages = [
+        { role: "system", content: sysContent },
+        { role: "user", content: "Write a social media post as " + char.name + "." }
+      ];
+      const reply = await chatStream(messages, {}, null, null);
+      const cleanReply = reply.replace(/^["\u201c]|["\u201d]$/g, "").trim();
+      preview.querySelector("#aipp-preview").innerHTML = '<div class="aipp-content">' + cleanReply.replace(/\n/g, "<br>") + '</div>';
+      preview.dataset.generatedText = cleanReply;
+    } catch(e) {
+      preview.querySelector("#aipp-preview").innerHTML = '<div class="empty-hint" style="color:#ff3b30">\u751f\u6210\u5931\u8d25: ' + e.message + '</div>';
+    } finally {
+      btn.textContent = "\u91cd\u65b0\u751f\u6210";
+      btn.disabled = false;
+    }
+  });
+
+  // Confirm AI post
+  container.querySelector("#aipp-confirm")?.addEventListener("click", async () => {
+    const preview = container.querySelector("#ai-post-preview");
+    const text = preview.dataset.generatedText;
+    if (!text) { alert("\u8bf7\u5148\u751f\u6210\u5185\u5bb9"); return; }
+    const charId = preview.dataset.charid;
+    const char = await getCharacter(charId);
+    const moment = createMoment({ content: text, images: [], owner: char?.name || "\u89d2\u8272" });
+    await saveMoment(moment);
+    preview.classList.add("hidden");
+    await renderMomentsFeed(container);
   });
 
   async function openPostPage(ctr) {
@@ -538,16 +660,7 @@ export async function renderChat(container) {
       inp.click();
     });
 
-    // Populate poster select with characters (async)
-    try {
-      const sel = page.querySelector("#mpp-poster-select");
-      sel.innerHTML = '<option value="player">\u6211\u81ea\u5df1</option>';
-      const chars = await getAllCharacters();
-      chars.filter(c => !c.isNpc).forEach(c => {
-        sel.innerHTML += '<option value="char_' + c.id + '">' + (c.name || "\u89d2\u8272") + ' (\u89d2\u8272\u53d1\u5e16)</option>';
-        sel.innerHTML += '<option value="ai_' + c.id + '">' + (c.name || "\u89d2\u8272") + ' (AI\u751f\u6210)</option>';
-      });
-    } catch(e) { console.error("[MOMENTS] char population error:", e); }
+
   }
 
   // Cancel post
@@ -560,42 +673,9 @@ export async function renderChat(container) {
     console.log("[MOMENTS] Submit button clicked");
     const page = container.querySelector("#moments-post-page");
     const text = page.querySelector("#mpp-text").value.trim();
-    const posterVal = page.querySelector("#mpp-poster-select").value;
     if (!text && mppImages.length === 0) { alert("\u8bf7\u8f93\u5165\u5185\u5bb9\u6216\u6dfb\u52a0\u56fe\u7247"); return; }
-
-    if (posterVal === "player") {
-      const moment = createMoment({ content: text, images: mppImages, owner: "player" });
-      await saveMoment(moment);
-    } else if (posterVal.startsWith("char_")) {
-      // Character posts directly with user-written content
-      const charId = posterVal.replace("char_", "");
-      const char = await getCharacter(charId);
-      const moment = createMoment({ content: text, images: mppImages, owner: char?.name || "Character" });
-      await saveMoment(moment);
-    } else if (posterVal.startsWith("ai_")) {
-      // AI generates the post in-character
-      const charId = posterVal.replace("ai_", "");
-      const char = await getCharacter(charId);
-      if (!char) { alert("\u89d2\u8272\u4e0d\u5b58\u5728"); return; }
-      const api = await getActiveApi();
-      if (!api) { alert("\u8bf7\u5148\u914d\u7f6eAPI"); return; }
-      page.querySelector("#mpp-submit").textContent = "\u751f\u6210\u4e2d...";
-      page.querySelector("#mpp-submit").disabled = true;
-      try {
-        const prompt = [
-          { role: "system", content: "You are " + char.name + ". " + (char.description || char.systemPrompt || "") + "\nWrite a short social media post (1-3 sentences) in-character. " + (text ? "Topic hint: " + text : "Post about whatever is on your mind.") + "\nReply ONLY with the post text, nothing else." },
-          { role: "user", content: "Write a social media post." }
-        ];
-        const reply = await chatStream(prompt, {}, null, null);
-        const moment = createMoment({ content: reply.trim(), images: mppImages, owner: char.name });
-        await saveMoment(moment);
-      } catch(e) {
-        alert("AI\u751f\u6210\u5931\u8d25: " + e.message);
-      } finally {
-        page.querySelector("#mpp-submit").textContent = "\u53d1\u8868";
-        page.querySelector("#mpp-submit").disabled = false;
-      }
-    }
+    const moment = createMoment({ content: text, images: mppImages, owner: "player" });
+    await saveMoment(moment);
     page.classList.add("hidden");
     await renderMomentsFeed(container);
   });
