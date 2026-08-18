@@ -2691,6 +2691,14 @@ html, body {
   justify-content: space-between;
   padding: 8px 0;
 }
+.lore-card-toggle {
+  flex-shrink: 0;
+  margin-left: 4px;
+}
+
+.lore-card-toggle input {
+  pointer-events: auto;
+}
 
 /* ═══════ Narrator Messages ═══════ */
 .msg-row.narrator {
@@ -3094,4 +3102,42 @@ html, body {
 }
 .moment-ai-comment-btn:disabled {
   opacity: 0.3;
+}
+
+/* ── Photo Option Popup ── */
+.photo-option-popup {
+  display: flex;
+  gap: 4px;
+}
+.photo-opt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  color: #1D1D1F;
+  cursor: pointer;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+}
+.photo-opt:active {
+  background: rgba(0,0,0,.06);
+}
+
+/* ── Moments Cover Upload Hint ── */
+.moments-cover {
+  cursor: pointer;
+  position: relative;
+}
+.moments-cover::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: transparent;
+  transition: background .2s;
+}
+.moments-cover:active::after {
+  background: rgba(0,0,0,.08);
 }

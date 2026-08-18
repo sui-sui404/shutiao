@@ -158,6 +158,26 @@ export function createSticker(overrides = {}) {
 }
 
 /**
+ * 记忆条目（三层记忆系统）
+ */
+export function createMemory(overrides = {}) {
+  return {
+    id: uid(),
+    content: "",
+    level: "long",
+    category: "event",
+    source: "chat",
+    characterId: null,
+    importance: 5,
+    keywords: [],
+    override: null,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    ...overrides,
+  };
+}
+
+/**
  * 朋友圈动态
  */
 export function createMoment(overrides = {}) {

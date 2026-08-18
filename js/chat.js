@@ -87,16 +87,16 @@ export async function renderChat(container) {
             </div>
             <!-- Post Creation Form (hidden by default) -->
             <div class="moments-post-form hidden" id="moments-post-form">
-              <textarea class="field-input field-textarea" id="moments-post-text" placeholder="Share something..." rows="3"></textarea>
+              <textarea class="field-input field-textarea" id="moments-post-text" placeholder="分享你的想法..." rows="3"></textarea>
               <div class="moments-post-images" id="moments-post-images"></div>
               <div class="moments-post-actions">
                 <button class="settings-btn" id="moments-add-image-btn">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                  Photo
+                  图片
                 </button>
                 <div style="flex:1"></div>
-                <button class="settings-btn" id="moments-cancel-post">Cancel</button>
-                <button class="settings-btn primary" id="moments-submit-post">Post</button>
+                <button class="settings-btn" id="moments-cancel-post">取消</button>
+                <button class="settings-btn primary" id="moments-submit-post">发布</button>
               </div>
             </div>
             <div class="moments-feed" id="moments-feed">
@@ -114,7 +114,7 @@ export async function renderChat(container) {
               </div>
               <div class="me-profile-info">
                 <span class="me-nickname">User</span>
-                <span class="me-id">ID: 000000</span>
+                <span class="me-id">点击编辑</span>
               </div>
               <svg class="me-profile-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
             </div>
@@ -122,48 +122,43 @@ export async function renderChat(container) {
             <!-- Mask Management Section -->
             <div class="me-section">
               <div class="me-section-header">
-                <span class="me-section-title">Masks</span>
+                <span class="me-section-title">面具</span>
                 <button class="chat-new-btn" id="add-mask-btn">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 </button>
               </div>
               <div class="me-mask-list" id="me-mask-list">
-                <div class="empty-hint">No masks yet. Create one to use different identities.</div>
+                <div class="empty-hint">还没有面具，点 + 创建一个吧</div>
               </div>
             </div>
 
             <!-- Mask Edit Panel (hidden by default) -->
             <div class="me-mask-edit hidden" id="me-mask-edit">
               <div class="me-section-header">
-                <span class="me-section-title" id="mask-edit-title">New Mask</span>
+                <span class="me-section-title" id="mask-edit-title">新建面具</span>
                 <button class="chat-new-btn" id="mask-edit-close">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               </div>
-              <label class="field-label">Name</label>
-              <input type="text" class="field-input" id="mask-name-input" placeholder="Your nickname for this character" />
-              <label class="field-label">Description</label>
-              <textarea class="field-input field-textarea" id="mask-desc-input" placeholder="Your persona description..." rows="4"></textarea>
+              <label class="field-label">名称</label>
+              <input type="text" class="field-input" id="mask-name-input" placeholder="你的昵称" />
+              <label class="field-label">描述</label>
+              <textarea class="field-input field-textarea" id="mask-desc-input" placeholder="人设描述..." rows="4"></textarea>
               <div class="form-actions" style="margin-top:12px">
-                <button class="settings-btn primary" id="mask-save-btn">Save</button>
-                <button class="settings-btn danger hidden" id="mask-delete-btn">Delete</button>
+                <button class="settings-btn primary" id="mask-save-btn">保存</button>
+                <button class="settings-btn danger hidden" id="mask-delete-btn">删除</button>
               </div>
             </div>
 
             <div class="me-menu">
               <div class="me-menu-item" data-action="favorites">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                <span>Favorites</span>
+                <span>收藏</span>
                 <svg class="me-menu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
               </div>
-              <div class="me-menu-item" data-action="albums">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-                <span>Albums</span>
-                <svg class="me-menu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
-              </div>
-              <div class="me-menu-item" data-action="about">
+                            <div class="me-menu-item" data-action="about">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                <span>About</span>
+                <span>关于</span>
                 <svg class="me-menu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
               </div>
             </div>
@@ -252,15 +247,12 @@ export async function renderChat(container) {
         </div>
                 <div class="chat-plus-menu hidden" id="chat-plus-menu">
           <div class="plus-menu-grid">
-            <button class="plus-menu-item" data-action="photo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Photo</span></button>
-            <button class="plus-menu-item" data-action="image"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg><span>Image</span></button>
-            <button class="plus-menu-item" data-action="voice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg><span>Voice</span></button>
-            <button class="plus-menu-item" data-action="location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Locate</span></button>
-            <button class="plus-menu-item" data-action="redpacket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><circle cx="12" cy="15" r="2"/></svg><span>RedPkt</span></button>
-            <button class="plus-menu-item" data-action="transfer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Trans</span></button>
-            <button class="plus-menu-item" data-action="narrator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg><span>Narrat</span></button>
-            <button class="plus-menu-item" data-action="reroll"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg><span>Reroll</span></button>
-            <button class="plus-menu-item" data-action="save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Save</span></button>
+            <button class="plus-menu-item" data-action="videocall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg><span>视频通话</span></button>
+            <button class="plus-menu-item" data-action="voicecall"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.3 1.88.56 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.93.26 1.91.44 2.81.56A2 2 0 0 1 22 16.92z"/></svg><span>语音通话</span></button>
+            <button class="plus-menu-item" data-action="location"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>位置</span></button>
+            <button class="plus-menu-item" data-action="redpacket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><circle cx="12" cy="15" r="2"/></svg><span>红包</span></button>
+            <button class="plus-menu-item" data-action="transfer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>转账</span></button>
+            <button class="plus-menu-item" data-action="save"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>保存</span></button>
           </div>
         </div>
       </div>
@@ -279,9 +271,12 @@ export async function renderChat(container) {
 
       <!-- Message context menu -->
       <div class="msg-context-menu hidden" id="msg-context-menu">
-        <button class="msg-ctx-item" data-action="edit">Edit</button>
-        <button class="msg-ctx-item" data-action="regen">Regenerate</button>
-        <button class="msg-ctx-item" data-action="delete">Delete</button>
+        <button class="msg-ctx-item" data-action="copy">复制</button>
+        <button class="msg-ctx-item" data-action="quote">引用</button>
+        <button class="msg-ctx-item" data-action="edit">编辑</button>
+        <button class="msg-ctx-item" data-action="regen">重roll</button>
+        <button class="msg-ctx-item" data-action="regen-from">从此处重roll</button>
+        <button class="msg-ctx-item" data-action="delete">删除</button>
       </div>
 
       <!-- Chat top menu (replaces direct delete) -->
@@ -362,19 +357,30 @@ export async function renderChat(container) {
     }, 300);
   });
 
-  // Moments camera button
-  container.querySelector("#moments-camera-btn")?.addEventListener("click", () => {
-    alert("Coming soon");
+      // Me profile click -> edit user info
+  container.querySelector(".me-profile-card")?.addEventListener("click", () => {
+    const nickname = prompt("\u8f93\u5165\u6635\u79f0\uff1a", container.querySelector(".me-nickname")?.textContent || "User");
+    if (nickname && nickname.trim()) {
+      container.querySelector(".me-nickname").textContent = nickname.trim();
+      localStorage.setItem("user-nickname", nickname.trim());
+    }
   });
 
-    // Me page menu handlers
+  // Restore saved nickname
+  const savedNick = localStorage.getItem("user-nickname");
+  if (savedNick) {
+    const nickEl = container.querySelector(".me-nickname");
+    if (nickEl) nickEl.textContent = savedNick;
+  }
+
+  // Me page menu handlers
   container.querySelectorAll(".me-menu-item").forEach(item => {
     item.addEventListener("click", () => {
       const action = item.dataset.action;
       if (action === "about") {
         alert("Mi Ma Shu\nVersion 0.2.0");
       } else {
-        alert("Coming soon");
+        alert("即将开放");
       }
     });
   });
@@ -386,7 +392,7 @@ export async function renderChat(container) {
     const listEl = container.querySelector("#me-mask-list");
     const masks = await getAllMasks();
     if (masks.length === 0) {
-      listEl.innerHTML = '<div class="empty-hint">No masks yet. Create one to use different identities.</div>';
+      listEl.innerHTML = '<div class="empty-hint">\u8fd8\u6ca1\u6709\u9762\u5177\uff0c\u70b9 + \u521b\u5efa\u4e00\u4e2a\u5427</div>';
       return;
     }
     listEl.innerHTML = masks.map(m => `
@@ -396,7 +402,7 @@ export async function renderChat(container) {
         </div>
         <div class="mask-card-info">
           <div class="mask-card-name">${escHtml(m.name)}</div>
-          <div class="mask-card-desc">${escHtml(m.description ? m.description.slice(0, 50) : "No description")}</div>
+          <div class="mask-card-desc">${escHtml(m.description ? m.description.slice(0, 50) : "\u65e0\u63cf\u8ff0")}</div>
         </div>
         <svg class="me-menu-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="9 18 15 12 9 6"/></svg>
       </div>
@@ -407,7 +413,7 @@ export async function renderChat(container) {
         const mask = await getMask(card.dataset.maskid);
         if (!mask) return;
         editingMaskId = mask.id;
-        container.querySelector("#mask-edit-title").textContent = "Edit Mask";
+        container.querySelector("#mask-edit-title").textContent = "\u7f16\u8f91\u9762\u5177";
         container.querySelector("#mask-name-input").value = mask.name;
         container.querySelector("#mask-desc-input").value = mask.description || "";
         container.querySelector("#mask-delete-btn").classList.remove("hidden");
@@ -418,7 +424,7 @@ export async function renderChat(container) {
 
   container.querySelector("#add-mask-btn")?.addEventListener("click", () => {
     editingMaskId = null;
-    container.querySelector("#mask-edit-title").textContent = "New Mask";
+    container.querySelector("#mask-edit-title").textContent = "\u65b0\u5efa\u9762\u5177";
     container.querySelector("#mask-name-input").value = "";
     container.querySelector("#mask-desc-input").value = "";
     container.querySelector("#mask-delete-btn").classList.add("hidden");
@@ -431,7 +437,7 @@ export async function renderChat(container) {
 
   container.querySelector("#mask-save-btn")?.addEventListener("click", async () => {
     const name = container.querySelector("#mask-name-input").value.trim();
-    if (!name) { alert("Name is required"); return; }
+    if (!name) { alert("\u8bf7\u8f93\u5165\u540d\u79f0"); return; }
     const desc = container.querySelector("#mask-desc-input").value.trim();
     if (editingMaskId) {
       const existing = await getMask(editingMaskId);
@@ -450,7 +456,7 @@ export async function renderChat(container) {
 
   container.querySelector("#mask-delete-btn")?.addEventListener("click", async () => {
     if (!editingMaskId) return;
-    if (confirm("Delete this mask?")) {
+    if (confirm("\u786e\u5b9a\u5220\u9664\u8fd9\u4e2a\u9762\u5177\uff1f")) {
       await deleteMask(editingMaskId);
       editingMaskId = null;
       container.querySelector("#me-mask-edit").classList.add("hidden");
@@ -499,12 +505,44 @@ export async function renderChat(container) {
 
   container.querySelector("#moments-submit-post")?.addEventListener("click", async () => {
     const text = container.querySelector("#moments-post-text").value.trim();
-    if (!text && momentImages.length === 0) { alert("Say something or add a photo"); return; }
+    if (!text && momentImages.length === 0) { alert("请输入内容或添加图片"); return; }
     const moment = createMoment({ content: text, images: momentImages, owner: "player" });
     await saveMoment(moment);
     container.querySelector("#moments-post-form").classList.add("hidden");
     await renderMomentsFeed(container);
   });
+
+  // Moments cover background upload
+  container.querySelector(".moments-cover")?.addEventListener("click", () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const cover = container.querySelector(".moments-cover");
+        cover.style.backgroundImage = "url(" + ev.target.result + ")";
+        cover.style.backgroundSize = "cover";
+        cover.style.backgroundPosition = "center";
+        localStorage.setItem("moments-cover-bg", ev.target.result);
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  });
+
+  // Restore saved cover bg
+  const savedCoverBg = localStorage.getItem("moments-cover-bg");
+  if (savedCoverBg) {
+    const cover = container.querySelector(".moments-cover");
+    if (cover) {
+      cover.style.backgroundImage = "url(" + savedCoverBg + ")";
+      cover.style.backgroundSize = "cover";
+      cover.style.backgroundPosition = "center";
+    }
+  }
 
   // Initial moments render
   if (!container.querySelector("#chat-moments-view").classList.contains("hidden")) {
@@ -524,7 +562,7 @@ async function renderSessionList(container) {
   const sessions = await getAllSessions();
 
   if (sessions.length === 0) {
-    list.innerHTML = `<div class="empty-hint">No chats yet. Tap + to start.</div>`;
+    list.innerHTML = `<div class="empty-hint">还没有聊天，点 + 开始吧</div>`;
     return;
   }
 
@@ -534,7 +572,7 @@ async function renderSessionList(container) {
     const lastMsg = msgs[msgs.length - 1];
     const preview = lastMsg
       ? truncate(lastMsg.content, 40)
-      : "No messages yet";
+      : "暂无消息";
     const timeStr = formatTime(s.updatedAt);
     const charName = s.characterId
       ? (await getCharacter(s.characterId))?.name || "Unknown"
@@ -608,7 +646,7 @@ async function renderMessages(container) {
   const messages = await getSessionMessages(activeSessionId);
 
   if (messages.length === 0) {
-    msgContainer.innerHTML = `<div class="chat-empty">Start a conversation...</div>`;
+    msgContainer.innerHTML = `<div class="chat-empty">开始对话吧...</div>`;
     return;
   }
 
@@ -984,13 +1022,51 @@ function bindChatEvents(container) {
     const action = e.target.closest(".msg-ctx-item")?.dataset.action;
     if (!action || !contextMsgId) return;
 
-    if (action === "delete") {
+    if (action === "copy") {
+      const msgs = await getSessionMessages(activeSessionId);
+      const msg = msgs.find((m) => m.id === contextMsgId);
+      if (msg) { navigator.clipboard?.writeText(msg.content).then(() => {}).catch(() => {}); }
+    } else if (action === "quote") {
+      const msgs = await getSessionMessages(activeSessionId);
+      const msg = msgs.find((m) => m.id === contextMsgId);
+      if (msg) {
+        const chatInput = container.querySelector("#chat-input");
+        if (chatInput) { chatInput.value = "> " + msg.content.split("\n")[0] + "\n" + chatInput.value; chatInput.focus(); }
+      }
+    } else if (action === "regen-from") {
+      // Delete this message and all messages after it, then regenerate
+      const allMsgs = await getSessionMessages(activeSessionId);
+      const idx = allMsgs.findIndex(m => m.id === contextMsgId);
+      if (idx >= 0) {
+        if (confirm("\u4ece\u6b64\u5904\u91cdroll\uff1f\u6b64\u6d88\u606f\u53ca\u4e4b\u540e\u7684\u6240\u6709\u6d88\u606f\u5c06\u88ab\u5220\u9664\u5e76\u91cd\u65b0\u751f\u6210")) {
+          for (let i = allMsgs.length - 1; i >= idx; i--) {
+            await deleteMessage(allMsgs[i].id);
+          }
+          await renderMessages(container);
+          await generateReply(container);
+        }
+      }
+    } else if (action === "delete") {
       await deleteMessage(contextMsgId);
       await renderMessages(container);
     } else if (action === "regen") {
-      await deleteLastAssistantMessage(activeSessionId);
-      await renderMessages(container);
-      await generateReply(container);
+      // Show reroll options: direct or with correction
+      const choice = confirm("\u76f4\u63a5\u91cdroll\uff1f\n\n\u70b9\u201c\u786e\u5b9a\u201d\u76f4\u63a5\u91cd\u65b0\u751f\u6210\n\u70b9\u201c\u53d6\u6d88\u201d\u53ef\u4ee5\u8f93\u5165\u7ea0\u9519\u63d0\u793a");
+      if (choice) {
+        await deleteLastAssistantMessage(activeSessionId);
+        await renderMessages(container);
+        await generateReply(container);
+      } else {
+        const correction = prompt("\u8bf7\u8f93\u5165\u7ea0\u9519\u63d0\u793a\uff08\u544a\u8bc9AI\u54ea\u91cc\u5199\u9519\u4e86\uff09\uff1a");
+        if (correction && correction.trim()) {
+          await deleteLastAssistantMessage(activeSessionId);
+          // Add correction as a system-like user note
+          const corrMsg = createMessage({ sessionId: activeSessionId, role: "user", content: "[\u7ea0\u9519] " + correction.trim() });
+          await addMessage(corrMsg);
+          await renderMessages(container);
+          await generateReply(container);
+        }
+      }
     } else if (action === "edit") {
       const msgs = await getSessionMessages(activeSessionId);
       const msg = msgs.find((m) => m.id === contextMsgId);
@@ -1154,7 +1230,7 @@ function bindChatEvents(container) {
         container.querySelector("#chat-topbar-title").textContent = session.title;
       }
     } else if (action === "chat-bg") {
-      alert("设置聊天背景 - Coming soon!");
+      alert("设置聊天背景 - 即将开放");
     } else if (action === "export") {
       const msgs = await getSessionMessages(activeSessionId);
       const text = msgs.map(m => `[${m.role}] ${m.content}`).join("\n\n");
@@ -1224,19 +1300,53 @@ function bindChatEvents(container) {
     container.querySelector("#chat-plus-menu")?.classList.toggle("hidden");
   });
 
-  // Narrate button (Coming soon)
+  // Narrate button (即将开放)
   container.querySelector("#chat-narrate-btn")?.addEventListener("click", () => {
-    alert("旁白模式 - Coming soon!");
+    alert("旁白模式 - 即将开放");
   });
 
-  // Photo button (Coming soon)
-  container.querySelector("#chat-photo-btn")?.addEventListener("click", () => {
-    alert("发送图片 - Coming soon!");
+  // Photo button (即将开放)
+  container.querySelector("#chat-photo-btn")?.addEventListener("click", (e) => {
+    // Show dual-option popup: album or text-to-image
+    const existing = container.querySelector(".photo-option-popup");
+    if (existing) { existing.remove(); return; }
+    const popup = document.createElement("div");
+    popup.className = "photo-option-popup";
+    popup.innerHTML = '<button class="photo-opt" data-opt="album"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>\u76f8\u518c</button><button class="photo-opt" data-opt="textimg"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>\u6587\u5b57\u63cf\u8ff0</button>';
+    popup.style.cssText = "position:absolute;bottom:90px;left:50px;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-radius:14px;padding:6px;display:flex;gap:4px;box-shadow:0 4px 20px rgba(0,0,0,.12);z-index:100";
+    const inputArea = container.querySelector(".chat-input-area");
+    inputArea.style.position = "relative";
+    inputArea.appendChild(popup);
+    popup.addEventListener("click", (ev) => {
+      const opt = ev.target.closest("[data-opt]")?.dataset.opt;
+      popup.remove();
+      if (opt === "album") {
+        const inp = document.createElement("input");
+        inp.type = "file"; inp.accept = "image/*";
+        inp.onchange = async (fe) => {
+          const file = fe.target.files[0]; if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (re) => {
+            const chatInput = container.querySelector("#chat-input");
+            if (chatInput) chatInput.value += "[image:" + file.name + "]";
+          };
+          reader.readAsDataURL(file);
+        };
+        inp.click();
+      } else if (opt === "textimg") {
+        const desc = prompt("\u8f93\u5165\u56fe\u7247\u63cf\u8ff0\uff1a");
+        if (desc) {
+          const chatInput = container.querySelector("#chat-input");
+          if (chatInput) chatInput.value += "[gen-image:" + desc + "]";
+        }
+      }
+    });
+    setTimeout(() => { document.addEventListener("click", function closePopup(ev) { if (!popup.contains(ev.target)) { popup.remove(); document.removeEventListener("click", closePopup); } }, { once: false }); }, 100);
   });
 
-  // Voice button (Coming soon)
+  // Voice button (即将开放)
   container.querySelector("#chat-voice-btn")?.addEventListener("click", () => {
-    alert("语音消息 - Coming soon!");
+    alert("语音消息 - 即将开放");
   });
 
   // Emoji panel toggle
@@ -1284,7 +1394,7 @@ function bindChatEvents(container) {
 
   // Sticker add button
   container.querySelector("#add-sticker-btn")?.addEventListener("click", () => {
-    alert("表情包管理 - Coming soon!");
+    alert("表情包管理 - 即将开放");
   });
 
   // Plus menu items - coming soon handler
@@ -1292,12 +1402,20 @@ function bindChatEvents(container) {
     const item = e.target.closest(".plus-menu-item");
     if (!item) return;
     const action = item.dataset.action;
-    if (action === "reroll") {
-      deleteLastAssistantMessage(activeSessionId).then(() => {
-        renderMessages(container).then(() => generateReply(container));
-      });
+    if (action === "videocall") {
+      alert("\u89c6\u9891\u901a\u8bdd\u529f\u80fd\u5373\u5c06\u5f00\u653e");
+    } else if (action === "voicecall") {
+      alert("\u8bed\u97f3\u901a\u8bdd\u529f\u80fd\u5373\u5c06\u5f00\u653e");
+    } else if (action === "location") {
+      alert("\u4f4d\u7f6e\u5206\u4eab\u5373\u5c06\u5f00\u653e");
+    } else if (action === "redpacket") {
+      alert("\u7ea2\u5305\u529f\u80fd\u5373\u5c06\u5f00\u653e");
+    } else if (action === "transfer") {
+      alert("\u8f6c\u8d26\u529f\u80fd\u5373\u5c06\u5f00\u653e");
+    } else if (action === "save") {
+      alert("\u4fdd\u5b58\u529f\u80fd\u5373\u5c06\u5f00\u653e");
     } else {
-      alert("Coming soon!");
+      alert("\u5373\u5c06\u5f00\u653e");
     }
     container.querySelector("#chat-plus-menu")?.classList.add("hidden");
   });

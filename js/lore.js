@@ -1,14 +1,14 @@
 /**
- * Lore — World Book module (SillyTavern-style)
+ * Lore — 世界书模块
  *
- * Entry types:
- *   keyword  — triggered when keywords appear in recent messages
- *   constant — always injected for the linked character
- *   global   — always injected for every character
+ * 条目属性通过 常驻/全局 开关控制:
+ *   keyword  — 关键词匹配触发（常驻OFF）
+ *   constant — 常驻注入，绑定角色（常驻ON + 全局OFF）
+ *   global   — 常驻注入，所有角色（常驻ON + 全局ON）
  *
  * Exports:
- *   renderLore(container)  — renders the full World Book UI
- *   getLoreForPrompt(characterId, messages) — returns matched entries for prompt building
+ *   renderLore(container)  — 渲染世界书 UI
+ *   getLoreForPrompt(characterId, messages) — 返回匹配条目用于 prompt 构建
  */
 import bus from "./eventBus.js";
 import {
@@ -22,23 +22,15 @@ import { createLoreEntry } from "./models.js";
 /* ───────── State ───────── */
 
 let currentEditId = null;
-let filterCharId = null;
-let filterType = "all"; // "all" | "keyword" | "constant" | "global"
 
-/* ───────── Position labels ───────── */
+/* ───────── 位置标签 ───────── */
 
 const POSITION_LABELS = {
-  before_char: "Before Char Defs",
-  after_char: "After Char Defs",
-  before_example: "Before Examples",
-  after_example: "After Examples",
-  at_depth: "At Depth",
-};
-
-const TYPE_LABELS = {
-  keyword: "Keyword",
-  constant: "Constant",
-  global: "Global",
+  before_char: "角色设定之前",
+  after_char: "角色设定之后",
+  before_example: "示例对话之前",
+  after_example: "示例对话之后",
+  at_depth: "指定深度",
 };
 
 /* ═══════════════════════════════════════════════
@@ -60,13 +52,11 @@ export async function getLoreForPrompt(characterId, messages) {
   for (const entry of enabled) {
     const type = entry.type || "keyword";
 
-    // ── Global: always included ──
     if (type === "global") {
       matched.push(entry);
       continue;
     }
 
-    // ── Constant: included if linked to this character or unlinked ──
     if (type === "constant") {
       if (!entry.characterId || entry.characterId === characterId) {
         matched.push(entry);
@@ -74,9 +64,7 @@ export async function getLoreForPrompt(characterId, messages) {
       continue;
     }
 
-    // ── Keyword: scan last N messages for keyword hits ──
     if (type === "keyword") {
-      // Must belong to this character or be unlinked
       if (entry.characterId && entry.characterId !== characterId) continue;
 
       const keywords = entry.keywords || [];
@@ -95,7 +83,6 @@ export async function getLoreForPrompt(characterId, messages) {
     }
   }
 
-  // Sort by priority descending, then by order ascending
   matched.sort((a, b) => {
     const pDiff = (b.priority || 0) - (a.priority || 0);
     if (pDiff !== 0) return pDiff;
@@ -112,10 +99,7 @@ export async function getLoreForPrompt(characterId, messages) {
 export async function renderLore(container) {
   container.innerHTML = `
     <div class="lore-page">
-      <!-- List View -->
       <div class="lore-list-view" id="lore-list-view">
-        <div class="lore-tab-bar" id="lore-tab-bar"></div>
-        <div class="lore-filter" id="lore-filter"></div>
         <div class="lore-list" id="lore-list"></div>
         <div class="lore-bottom-actions">
           <button class="settings-btn primary" id="lore-add-btn">
@@ -124,19 +108,9 @@ export async function renderLore(container) {
               <line x1="12" y1="5" x2="12" y2="19"/>
               <line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            New Entry
+            新建条目
           </button>
           <button class="settings-btn" id="lore-import-btn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
-                 stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Import
-          </button>
-          <button class="settings-btn" id="lore-export-btn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
                  stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
                  stroke-linejoin="round">
@@ -144,172 +118,51 @@ export async function renderLore(container) {
               <polyline points="17 8 12 3 7 8"/>
               <line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
-            Export
+            导入 JSON
+          </button>
+          <button class="settings-btn" id="lore-export-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                 stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            导出 JSON
           </button>
         </div>
       </div>
 
-      <!-- Edit View -->
       <div class="lore-edit-view hidden" id="lore-edit-view">
         <div class="lore-edit-header">
-          <button class="chat-back-to-home" id="lore-edit-back">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1.8">
+          <span class="lore-edit-title" id="lore-edit-title">新建条目</span>
+          <button class="settings-btn" id="lore-back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+                 stroke-linejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
+            返回
           </button>
-          <span class="lore-edit-title" id="lore-edit-title">New Entry</span>
-          <div style="width:36px"></div>
         </div>
-        <div class="lore-edit-form">
-          <label class="field-label">Type</label>
-          <select class="field-input" id="lore-type">
-            <option value="keyword">Keyword</option>
-            <option value="constant">Constant</option>
-            <option value="global">Global</option>
-          </select>
-
-          <div id="lore-keywords-group">
-            <label class="field-label">Keywords</label>
-            <input type="text" class="field-input" id="lore-keywords"
-                   placeholder="keyword1, keyword2, keyword3" />
-          </div>
-
-          <label class="field-label">Content</label>
-          <textarea class="field-input field-textarea" id="lore-content"
-                    placeholder="Describe this world knowledge..." rows="8"></textarea>
-
-          <label class="field-label">Position</label>
-          <select class="field-input" id="lore-position">
-            <option value="before_char">Before Character Defs</option>
-            <option value="after_char">After Character Defs</option>
-            <option value="before_example">Before Examples</option>
-            <option value="after_example">After Examples</option>
-            <option value="at_depth">At Depth</option>
-          </select>
-
-          <div id="lore-depth-group" class="hidden">
-            <label class="field-label">Scan Depth</label>
-            <input type="number" class="field-input" id="lore-depth"
-                   placeholder="100" min="0" max="999" value="100" />
-          </div>
-
-          <div class="lore-edit-row">
-            <div class="lore-edit-half">
-              <label class="field-label">Priority</label>
-              <input type="number" class="field-input" id="lore-priority"
-                     placeholder="0" min="0" max="999" value="0" />
-            </div>
-            <div class="lore-edit-half">
-              <label class="field-label">Order</label>
-              <input type="number" class="field-input" id="lore-order"
-                     placeholder="0" min="0" max="999" value="0" />
-            </div>
-          </div>
-
-          <label class="field-label">Character</label>
-          <select class="field-input" id="lore-char-select">
-            <option value="">Global (All Characters)</option>
-          </select>
-
-          <label class="field-label">Comment</label>
-          <input type="text" class="field-input" id="lore-comment"
-                 placeholder="Optional note for yourself..." />
-
-          <div class="lore-toggle-row">
-            <span class="field-label" style="margin:0">Enabled</span>
-            <label class="toggle-switch">
-              <input type="checkbox" id="lore-enabled" checked />
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-
-          <div class="form-actions">
-            <button class="settings-btn primary" id="lore-save-btn">Save</button>
-            <button class="settings-btn danger hidden" id="lore-delete-btn">Delete</button>
-          </div>
-        </div>
+        <div class="lore-edit-form" id="lore-edit-form"></div>
       </div>
-    </div>
-  `;
+    </div>`;
 
-  renderTabs(container);
-  await renderFilter(container);
   await renderList(container);
-  bindEvents(container);
+  bindListEvents(container);
 }
 
-/* ───────── Tabs ───────── */
-
-function renderTabs(container) {
-  const bar = container.querySelector("#lore-tab-bar");
-  const tabs = [
-    { key: "all", label: "All" },
-    { key: "keyword", label: "Keyword" },
-    { key: "constant", label: "Constant" },
-    { key: "global", label: "Global" },
-  ];
-  bar.innerHTML = tabs
-    .map(
-      (t) =>
-        `<button class="lore-tab${filterType === t.key ? " lore-tab-active" : ""}"
-                 data-type="${t.key}">${t.label}</button>`
-    )
-    .join("");
-
-  bar.addEventListener("click", (e) => {
-    const btn = e.target.closest(".lore-tab");
-    if (!btn) return;
-    filterType = btn.dataset.type;
-    renderTabs(container);
-    renderList(container);
-  });
-}
-
-/* ───────── Character Filter ───────── */
-
-async function renderFilter(container) {
-  const filterEl = container.querySelector("#lore-filter");
-  const chars = await getAllCharacters();
-
-  filterEl.innerHTML = `
-    <select class="field-input lore-filter-select" id="lore-filter-select">
-      <option value="">All Characters</option>
-      ${chars
-        .map(
-          (c) =>
-            `<option value="${c.id}">${escHtml(c.name || "Unnamed")}</option>`
-        )
-        .join("")}
-    </select>
-  `;
-
-  const select = filterEl.querySelector("#lore-filter-select");
-  if (filterCharId) select.value = filterCharId;
-
-  select.addEventListener("change", () => {
-    filterCharId = select.value || null;
-    renderList(container);
-  });
-}
-
-/* ───────── Entry List ───────── */
+/* ───────── List rendering ───────── */
 
 async function renderList(container) {
-  const list = container.querySelector("#lore-list");
-  let entries = await getAllLoreEntries();
+  const entries = await getAllLoreEntries();
+  const characters = await getAllCharacters();
+  const charMap = {};
+  for (const c of characters) charMap[c.id] = c.name || c.id;
 
-  // Apply type filter
-  if (filterType !== "all") {
-    entries = entries.filter((e) => (e.type || "keyword") === filterType);
-  }
+  const listEl = container.querySelector("#lore-list");
 
-  // Apply character filter
-  if (filterCharId) {
-    entries = entries.filter((e) => e.characterId === filterCharId);
-  }
-
-  // Sort by priority desc, then order asc
   entries.sort((a, b) => {
     const pDiff = (b.priority || 0) - (a.priority || 0);
     if (pDiff !== 0) return pDiff;
@@ -317,164 +170,220 @@ async function renderList(container) {
   });
 
   if (entries.length === 0) {
-    list.innerHTML = `<div class="empty-hint">No lore entries yet. Tap + to create world knowledge.</div>`;
+    listEl.innerHTML = `<div class="empty-hint" style="text-align:center;padding:40px 0;color:var(--text-tertiary);font-size:14px;">暂无世界书条目</div>`;
     return;
   }
 
-  const chars = await getAllCharacters();
-  const charMap = {};
-  chars.forEach((c) => {
-    charMap[c.id] = c.name || "Unnamed";
-  });
+  listEl.innerHTML = entries.map((entry) => {
+    const type = entry.type || "keyword";
+    const keywords = entry.keywords || [];
+    const isEnabled = entry.isEnabled !== false;
+    const disabledClass = isEnabled ? "" : " lore-card-disabled";
+    const charName = entry.characterId ? charMap[entry.characterId] || "" : "";
 
-  list.innerHTML = entries
-    .map((entry) => {
-      const type = entry.type || "keyword";
-      const preview =
-        (entry.content || "").length > 80
-          ? entry.content.slice(0, 80) + "\u2026"
-          : entry.content || "";
-      const keywords = entry.keywords || [];
-      const charName = entry.characterId
-        ? charMap[entry.characterId] || ""
-        : "";
-      const disabledClass =
-        entry.isEnabled === false ? " lore-card-disabled" : "";
-      const posLabel =
-        entry.position === "at_depth"
-          ? `Depth ${entry.depth ?? 0}`
-          : POSITION_LABELS[entry.position] || entry.position || "";
+    const keywordBadges = keywords.length > 0
+      ? keywords.slice(0, 5).map((kw) => `<span class="lore-keyword-badge">${escHtml(kw)}</span>`).join("") +
+        (keywords.length > 5 ? `<span class="lore-keyword-badge">+${keywords.length - 5}</span>` : "")
+      : `<span class="lore-keyword-badge lore-badge-empty">无关键词</span>`;
 
-      return `
+    const typeBadges = [];
+    if (type === "constant" || type === "global") {
+      typeBadges.push(`<span class="lore-type-badge lore-type-constant">常驻</span>`);
+    }
+    if (type === "global") {
+      typeBadges.push(`<span class="lore-type-badge lore-type-global">全局</span>`);
+    }
+
+    const preview = (entry.content || "").slice(0, 120).replace(/\n/g, " ");
+    const posLabel = POSITION_LABELS[entry.position] || entry.position || "";
+    const commentHtml = entry.comment
+      ? `<span class="lore-card-comment">${escHtml(entry.comment)}</span>`
+      : "";
+
+    return `
       <div class="lore-card${disabledClass}" data-id="${entry.id}">
         <div class="lore-card-top">
           <div class="lore-card-left">
-            <span class="lore-type-badge lore-type-${type}">${TYPE_LABELS[type] || type}</span>
-            <div class="lore-card-keywords">
-              ${
-                type === "keyword"
-                  ? keywords.length > 0
-                    ? keywords
-                        .map(
-                          (k) =>
-                            `<span class="lore-keyword-badge">${escHtml(k)}</span>`
-                        )
-                        .join("")
-                    : `<span class="lore-keyword-badge lore-badge-empty">no keywords</span>`
-                  : ""
-              }
-            </div>
+            <div class="lore-card-keywords">${keywordBadges}</div>
+            ${typeBadges.join("")}
           </div>
           <div class="lore-card-meta">
-            ${
-              charName
-                ? `<span class="lore-card-char">${escHtml(charName)}</span>`
-                : ""
-            }
+            ${charName ? `<span class="lore-card-char">${escHtml(charName)}</span>` : ""}
             <span class="lore-card-priority">P${entry.priority || 0}</span>
+            <label class="toggle-switch lore-card-toggle" data-toggle-id="${entry.id}">
+              <input type="checkbox" ${isEnabled ? "checked" : ""} />
+              <span class="toggle-slider"></span>
+            </label>
           </div>
         </div>
         <div class="lore-card-preview">${escHtml(preview)}</div>
         <div class="lore-card-bottom">
           <span class="lore-position-badge">${escHtml(posLabel)}</span>
-          ${entry.comment ? `<span class="lore-card-comment">${escHtml(entry.comment)}</span>` : ""}
+          ${commentHtml}
         </div>
-      </div>
-    `;
-    })
-    .join("");
+      </div>`;
+  }).join("");
 }
 
-/* ───────── Events ───────── */
+/* ───────── List events ───────── */
 
-function bindEvents(container) {
-  const loreList = container.querySelector("#lore-list");
-  const addBtn = container.querySelector("#lore-add-btn");
-  const importBtn = container.querySelector("#lore-import-btn");
-  const exportBtn = container.querySelector("#lore-export-btn");
-
-  // Click card -> edit
-  loreList.addEventListener("click", (e) => {
-    const card = e.target.closest(".lore-card");
-    if (!card) return;
-    openEditView(container, card.dataset.id);
-  });
-
-  // Add
-  addBtn.addEventListener("click", () => {
+function bindListEvents(container) {
+  container.querySelector("#lore-add-btn").addEventListener("click", () => {
     openEditView(container, null);
   });
 
-  // Import
-  importBtn.addEventListener("click", () => handleImport(container));
+  container.querySelector("#lore-export-btn").addEventListener("click", handleExport);
 
-  // Export
-  exportBtn.addEventListener("click", () => handleExport());
-
-  // Back
-  container
-    .querySelector("#lore-edit-back")
-    .addEventListener("click", () => closeEditView(container));
-
-  // Save
-  container
-    .querySelector("#lore-save-btn")
-    .addEventListener("click", async () => {
-      await saveCurrentForm(container);
-    });
-
-  // Delete
-  container
-    .querySelector("#lore-delete-btn")
-    .addEventListener("click", async () => {
-      if (!currentEditId) return;
-      if (!confirm("Delete this lore entry?")) return;
-      await deleteLoreEntry(currentEditId);
-      bus.emit("lore:deleted", currentEditId);
-      currentEditId = null;
-      closeEditView(container);
-    });
-
-  // Type selector toggles keyword field visibility
-  const typeSelect = container.querySelector("#lore-type");
-  typeSelect.addEventListener("change", () => {
-    syncFormVisibility(container);
+  container.querySelector("#lore-import-btn").addEventListener("click", () => {
+    handleImport(container);
   });
 
-  // Position selector toggles depth field
-  const posSelect = container.querySelector("#lore-position");
-  posSelect.addEventListener("change", () => {
-    syncFormVisibility(container);
+  container.querySelector("#lore-list").addEventListener("click", (e) => {
+    const toggle = e.target.closest(".lore-card-toggle");
+    if (toggle) {
+      e.stopPropagation();
+      const id = toggle.dataset.toggleId;
+      const checkbox = toggle.querySelector("input");
+      handleToggleEnabled(container, id, checkbox.checked);
+      return;
+    }
+
+    const card = e.target.closest(".lore-card");
+    if (card) {
+      openEditView(container, card.dataset.id);
+    }
   });
+
+  container.querySelector("#lore-back-btn").addEventListener("click", () => {
+    closeEditView(container);
+  });
+}
+
+async function handleToggleEnabled(container, id, isEnabled) {
+  const entries = await getAllLoreEntries();
+  const entry = entries.find((e) => e.id === id);
+  if (!entry) return;
+  entry.isEnabled = isEnabled;
+  entry.updatedAt = Date.now();
+  await saveLoreEntry(entry);
+  bus.emit("lore:changed", entry);
 }
 
 /* ───────── Edit View ───────── */
 
 async function openEditView(container, entryId) {
-  const listView = container.querySelector("#lore-list-view");
-  const editView = container.querySelector("#lore-edit-view");
-  const titleEl = container.querySelector("#lore-edit-title");
-  const deleteBtn = container.querySelector("#lore-delete-btn");
+  currentEditId = entryId || null;
+  const characters = await getAllCharacters();
 
-  await populateCharSelect(container);
+  const charOptions = characters.map((c) =>
+    `<option value="${c.id}">${escHtml(c.name || c.id)}</option>`
+  ).join("");
 
-  if (entryId) {
-    currentEditId = entryId;
-    titleEl.textContent = "Edit Entry";
-    deleteBtn.classList.remove("hidden");
-    const entries = await getAllLoreEntries();
-    const entry = entries.find((e) => e.id === entryId);
-    if (entry) fillForm(container, entry);
+  const posOptions = Object.entries(POSITION_LABELS).map(([val, label]) =>
+    `<option value="${val}">${label}</option>`
+  ).join("");
+
+  const formEl = container.querySelector("#lore-edit-form");
+  formEl.innerHTML = `
+    <label class="field-label">关键词（逗号分隔）</label>
+    <input type="text" class="field-input" id="lore-keywords" placeholder="关键词1, 关键词2, ..." />
+
+    <label class="field-label">内容</label>
+    <textarea class="field-input" id="lore-content" rows="6" placeholder="世界书条目内容..." style="resize:vertical;min-height:100px;"></textarea>
+
+    <div class="lore-toggle-row">
+      <span class="field-label" style="margin:0;">常驻（始终注入）</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="lore-always-active" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div class="lore-toggle-row">
+      <span class="field-label" style="margin:0;">全局（所有角色生效）</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="lore-is-global" />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <div id="lore-char-group">
+      <label class="field-label">角色</label>
+      <select class="field-input" id="lore-char-select">
+        <option value="">不绑定角色</option>
+        ${charOptions}
+      </select>
+    </div>
+
+    <label class="field-label">注入位置</label>
+    <select class="field-input" id="lore-position">
+      ${posOptions}
+    </select>
+
+    <div id="lore-depth-group" class="hidden">
+      <label class="field-label">深度</label>
+      <input type="number" class="field-input" id="lore-depth" min="0" value="100" />
+    </div>
+
+    <label class="field-label">优先级</label>
+    <input type="number" class="field-input" id="lore-priority" min="0" value="0" />
+
+    <div class="lore-toggle-row">
+      <span class="field-label" style="margin:0;">启用</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="lore-enabled" checked />
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+
+    <label class="field-label">备注</label>
+    <input type="text" class="field-input" id="lore-comment" placeholder="可选备注..." />
+
+    <div class="form-actions" style="padding-top:8px;">
+      <button class="settings-btn primary" id="lore-save-btn">保存</button>
+      <button class="settings-btn danger ${currentEditId ? "" : "hidden"}" id="lore-delete-btn">删除</button>
+    </div>`;
+
+  if (currentEditId) {
+    container.querySelector("#lore-edit-title").textContent = "编辑条目";
+    await fillEditForm(container, currentEditId);
   } else {
-    currentEditId = null;
-    titleEl.textContent = "New Entry";
-    deleteBtn.classList.add("hidden");
-    fillForm(container, createLoreEntry());
+    container.querySelector("#lore-edit-title").textContent = "新建条目";
+    syncFormVisibility(container);
   }
 
-  syncFormVisibility(container);
-  listView.classList.add("hidden");
-  editView.classList.remove("hidden");
+  bindEditEvents(container);
+  showEditView(container);
+}
+
+function bindEditEvents(container) {
+  container.querySelector("#lore-is-global").addEventListener("change", () => {
+    syncFormVisibility(container);
+  });
+
+  container.querySelector("#lore-position").addEventListener("change", () => {
+    syncFormVisibility(container);
+  });
+
+  container.querySelector("#lore-save-btn").addEventListener("click", () => {
+    saveCurrentForm(container);
+  });
+
+  const deleteBtn = container.querySelector("#lore-delete-btn");
+  if (deleteBtn) {
+    deleteBtn.addEventListener("click", async () => {
+      if (!currentEditId) return;
+      if (!confirm("确定要删除这个条目吗？")) return;
+      await deleteLoreEntry(currentEditId);
+      bus.emit("lore:deleted", currentEditId);
+      closeEditView(container);
+    });
+  }
+}
+
+function showEditView(container) {
+  container.querySelector("#lore-list-view").classList.add("hidden");
+  container.querySelector("#lore-edit-view").classList.remove("hidden");
 }
 
 function closeEditView(container) {
@@ -484,56 +393,42 @@ function closeEditView(container) {
   renderList(container);
 }
 
-async function populateCharSelect(container) {
-  const select = container.querySelector("#lore-char-select");
-  const chars = await getAllCharacters();
-  select.innerHTML = `
-    <option value="">Global (All Characters)</option>
-    ${chars
-      .map(
-        (c) =>
-          `<option value="${c.id}">${escHtml(c.name || "Unnamed")}</option>`
-      )
-      .join("")}
-  `;
-}
+async function fillEditForm(container, entryId) {
+  const entries = await getAllLoreEntries();
+  const entry = entries.find((e) => e.id === entryId);
+  if (!entry) return;
 
-function fillForm(container, entry) {
-  container.querySelector("#lore-type").value = entry.type || "keyword";
-  container.querySelector("#lore-keywords").value = (entry.keywords || []).join(
-    ", "
-  );
+  const type = entry.type || "keyword";
+  const isAlwaysActive = type === "constant" || type === "global";
+  const isGlobal = type === "global";
+
+  container.querySelector("#lore-keywords").value = (entry.keywords || []).join(", ");
   container.querySelector("#lore-content").value = entry.content || "";
-
-  // Position: if it's "at_depth", select "at_depth"; otherwise select the value
-  const pos = entry.position || "after_char";
-  container.querySelector("#lore-position").value = pos;
+  container.querySelector("#lore-always-active").checked = isAlwaysActive;
+  container.querySelector("#lore-is-global").checked = isGlobal;
+  container.querySelector("#lore-char-select").value = entry.characterId || "";
+  container.querySelector("#lore-position").value = entry.position || "after_char";
   container.querySelector("#lore-depth").value = entry.depth ?? 100;
   container.querySelector("#lore-priority").value = entry.priority ?? 0;
-  container.querySelector("#lore-order").value = entry.order ?? 0;
   container.querySelector("#lore-enabled").checked = entry.isEnabled !== false;
-  container.querySelector("#lore-char-select").value =
-    entry.characterId || "";
   container.querySelector("#lore-comment").value = entry.comment || "";
 
   syncFormVisibility(container);
 }
 
 function syncFormVisibility(container) {
-  const type = container.querySelector("#lore-type").value;
+  const isGlobal = container.querySelector("#lore-is-global").checked;
   const pos = container.querySelector("#lore-position").value;
-  const kwGroup = container.querySelector("#lore-keywords-group");
+  const charGroup = container.querySelector("#lore-char-group");
   const depthGroup = container.querySelector("#lore-depth-group");
 
-  // Show keywords only for keyword type
-  if (type === "keyword") {
-    kwGroup.classList.remove("hidden");
+  if (isGlobal) {
+    charGroup.classList.add("hidden");
   } else {
-    kwGroup.classList.add("hidden");
+    charGroup.classList.remove("hidden");
   }
 
-  // Show depth input when position is "at_depth" OR type is "keyword"
-  if (pos === "at_depth" || type === "keyword") {
+  if (pos === "at_depth") {
     depthGroup.classList.remove("hidden");
   } else {
     depthGroup.classList.add("hidden");
@@ -547,20 +442,25 @@ function readForm(container) {
     .map((k) => k.trim())
     .filter((k) => k.length > 0);
 
-  const type = container.querySelector("#lore-type").value;
+  const isAlwaysActive = container.querySelector("#lore-always-active").checked;
+  const isGlobal = container.querySelector("#lore-is-global").checked;
+
+  let type = "keyword";
+  if (isAlwaysActive && isGlobal) type = "global";
+  else if (isAlwaysActive) type = "constant";
+
   const position = container.querySelector("#lore-position").value;
 
   return {
     type,
-    keywords: type === "keyword" ? keywords : [],
+    keywords,
     content: (container.querySelector("#lore-content").value || "").trim(),
     position,
     depth: parseInt(container.querySelector("#lore-depth").value, 10) || 100,
-    priority:
-      parseInt(container.querySelector("#lore-priority").value, 10) || 0,
-    order: parseInt(container.querySelector("#lore-order").value, 10) || 0,
+    priority: parseInt(container.querySelector("#lore-priority").value, 10) || 0,
+    order: 0,
     isEnabled: container.querySelector("#lore-enabled").checked,
-    characterId: container.querySelector("#lore-char-select").value || null,
+    characterId: isGlobal ? null : (container.querySelector("#lore-char-select").value || null),
     comment: (container.querySelector("#lore-comment").value || "").trim(),
   };
 }
@@ -569,11 +469,11 @@ async function saveCurrentForm(container) {
   const values = readForm(container);
 
   if (values.type === "keyword" && values.keywords.length === 0) {
-    alert("Keyword entries need at least one keyword.");
+    alert("关键词模式下至少需要一个关键词。");
     return;
   }
   if (!values.content) {
-    alert("Please add some content.");
+    alert("请填写条目内容。");
     return;
   }
 
@@ -596,7 +496,7 @@ async function saveCurrentForm(container) {
 async function handleExport() {
   const entries = await getAllLoreEntries();
   if (entries.length === 0) {
-    alert("No lore entries to export.");
+    alert("没有可导出的条目。");
     return;
   }
   const blob = new Blob(
@@ -624,7 +524,7 @@ function handleImport(container) {
       const text = await file.text();
       const data = JSON.parse(text);
       if (!data.loreEntries || !Array.isArray(data.loreEntries)) {
-        alert("Invalid lore file format.");
+        alert("无效的世界书文件格式。");
         return;
       }
       let imported = 0;
@@ -638,12 +538,12 @@ function handleImport(container) {
         await saveLoreEntry(entry);
         imported++;
       }
-      alert(`Imported ${imported} lore entries.`);
+      alert(`已导入 ${imported} 个条目。`);
       bus.emit("lore:changed");
       await renderList(container);
     } catch (err) {
       console.error("[Lore] Import error:", err);
-      alert("Failed to import: " + err.message);
+      alert("导入失败: " + err.message);
     }
   });
   input.click();
