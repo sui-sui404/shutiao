@@ -22,6 +22,10 @@ import {
   getAllMoments,
   deleteMoment,
   getMoment,
+  getAllMasks,
+  getMask,
+  saveMask,
+  deleteMask,
 } from "./db.js";
 import { createSession, createMessage, createMoment, createMask, createSticker } from "./models.js";
 import { chatStream } from "./api.js";
@@ -334,8 +338,8 @@ export async function renderChat(container) {
     </div>
   `;
 
-  bindChatEvents(container);
-  await renderSessionList(container);
+  try { bindChatEvents(container); } catch(e) { console.error("bindChatEvents error:", e); }
+  try { await renderSessionList(container); } catch(e) { console.error("renderSessionList error:", e); }
 
   // Back button closes the modal
   container.querySelector("#chat-close-btn")?.addEventListener("click", () => {
@@ -361,6 +365,7 @@ export async function renderChat(container) {
         await renderContacts(container);
       } else if (target === "moments") {
         container.querySelector("#chat-moments-view").classList.remove("hidden");
+        try { await renderMomentsFeed(container); } catch(e) { console.error("renderMomentsFeed error:", e); }
       } else if (target === "me") {
         container.querySelector("#chat-me-view").classList.remove("hidden");
       }
@@ -404,6 +409,7 @@ export async function renderChat(container) {
     });
   });
 
+  try {
   // ── Mask Management ──
   let editingMaskId = null;
 
@@ -483,35 +489,34 @@ export async function renderChat(container) {
     }
   });
 
+  } catch(e) { console.error("Mask init error:", e); }
+
   // ── Moments Post Creation (Full-page WeChat style) ──
   let mppImages = [];
 
   // Open post page from camera btn
   container.querySelector("#moments-camera-btn")?.addEventListener("click", (e) => {
+    console.log("[MOMENTS] Camera button clicked");
     e.stopPropagation();
     openPostPage(container);
   });
 
   // Open post page from FAB btn
   container.querySelector("#moments-fab-btn")?.addEventListener("click", () => {
+    console.log("[MOMENTS] FAB button clicked");
     openPostPage(container);
   });
 
   async function openPostPage(ctr) {
+    console.log("[MOMENTS] openPostPage called");
     const page = ctr.querySelector("#moments-post-page");
-    if (!page) return;
+    if (!page) { console.error("[MOMENTS] #moments-post-page not found"); return; }
     mppImages = [];
     page.querySelector("#mpp-text").value = "";
     page.querySelector("#mpp-images").innerHTML = '<div class="moments-post-add-img" id="mpp-add-img"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>';
-    // Populate poster select with characters
-    const sel = page.querySelector("#mpp-poster-select");
-    sel.innerHTML = '<option value="player">\u6211\u81ea\u5df1</option>';
-    const chars = await getAllCharacters();
-    chars.filter(c => !c.isNpc).forEach(c => {
-      sel.innerHTML += '<option value="char_' + c.id + '">' + (c.name || "\u89d2\u8272") + ' (\u89d2\u8272\u53d1\u5e16)</option>';
-      sel.innerHTML += '<option value="ai_' + c.id + '">' + (c.name || "\u89d2\u8272") + ' (AI\u751f\u6210)</option>';
-    });
+    // Show the page FIRST before async operations
     page.classList.remove("hidden");
+    console.log("[MOMENTS] Post page shown");
     // Bind add-img
     page.querySelector("#mpp-add-img")?.addEventListener("click", () => {
       const inp = document.createElement("input");
@@ -532,6 +537,17 @@ export async function renderChat(container) {
       };
       inp.click();
     });
+
+    // Populate poster select with characters (async)
+    try {
+      const sel = page.querySelector("#mpp-poster-select");
+      sel.innerHTML = '<option value="player">\u6211\u81ea\u5df1</option>';
+      const chars = await getAllCharacters();
+      chars.filter(c => !c.isNpc).forEach(c => {
+        sel.innerHTML += '<option value="char_' + c.id + '">' + (c.name || "\u89d2\u8272") + ' (\u89d2\u8272\u53d1\u5e16)</option>';
+        sel.innerHTML += '<option value="ai_' + c.id + '">' + (c.name || "\u89d2\u8272") + ' (AI\u751f\u6210)</option>';
+      });
+    } catch(e) { console.error("[MOMENTS] char population error:", e); }
   }
 
   // Cancel post
@@ -541,6 +557,7 @@ export async function renderChat(container) {
 
   // Submit post
   container.querySelector("#mpp-submit")?.addEventListener("click", async () => {
+    console.log("[MOMENTS] Submit button clicked");
     const page = container.querySelector("#moments-post-page");
     const text = page.querySelector("#mpp-text").value.trim();
     const posterVal = page.querySelector("#mpp-poster-select").value;

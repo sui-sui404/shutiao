@@ -111,7 +111,7 @@ function initAppIcons() {
 }
 
 /* ── Modal System ── */
-function openModal(appName) {
+async function openModal(appName) {
   const modal = document.getElementById("app-modal");
   const title = document.getElementById("modal-title");
   const body = document.getElementById("modal-body");
@@ -121,11 +121,11 @@ function openModal(appName) {
   body.innerHTML = "";
 
   if (appName === "Settings") {
-    renderSettings(body);
+    await renderSettings(body);
   } else if (appName === "Chat") {
-    renderChat(body);
+    await renderChat(body);
   } else if (appName === "Character") {
-    renderCharacter(body);
+    await renderCharacter(body);
   } else if (appName === "Presets") {
     renderPresets(body);
   } else if (appName === "Lore") {
