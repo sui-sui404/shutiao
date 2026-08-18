@@ -2440,6 +2440,40 @@ html, body {
   padding-bottom: 20px;
 }
 
+/* Tab bar */
+.lore-tab-bar {
+  display: flex;
+  gap: 0;
+  padding: 0 0 10px;
+  border-bottom: 1px solid rgba(142, 142, 147, 0.15);
+  margin-bottom: 10px;
+}
+
+.lore-tab {
+  flex: 1;
+  padding: 8px 0;
+  border: none;
+  background: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.lore-tab:active {
+  opacity: 0.6;
+}
+
+.lore-tab-active {
+  color: var(--text-primary);
+  border-bottom-color: var(--text-primary);
+  font-weight: 600;
+}
+
 .lore-filter {
   padding: 0 0 8px;
 }
@@ -2481,12 +2515,19 @@ html, body {
   margin-bottom: 8px;
 }
 
+.lore-card-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
 .lore-card-keywords {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  flex: 1;
-  min-width: 0;
 }
 
 .lore-keyword-badge {
@@ -2503,6 +2544,33 @@ html, body {
 .lore-badge-empty {
   font-style: italic;
   color: var(--text-tertiary);
+}
+
+/* Type badges */
+.lore-type-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.lore-type-keyword {
+  background: rgba(142, 142, 147, 0.14);
+  color: var(--text-secondary);
+}
+
+.lore-type-constant {
+  background: rgba(99, 99, 102, 0.14);
+  color: var(--text-secondary);
+}
+
+.lore-type-global {
+  background: rgba(72, 72, 74, 0.18);
+  color: var(--text-primary);
 }
 
 .lore-card-meta {
@@ -2540,10 +2608,40 @@ html, body {
   overflow: hidden;
 }
 
+.lore-card-bottom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.lore-position-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: rgba(142, 142, 147, 0.08);
+  white-space: nowrap;
+}
+
+.lore-card-comment {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
 .lore-bottom-actions {
   padding: 16px 0 0;
   display: flex;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 /* Lore Edit View */
@@ -2574,6 +2672,17 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.lore-edit-row {
+  display: flex;
+  gap: 12px;
+}
+
+.lore-edit-half {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .lore-toggle-row {
@@ -2956,4 +3065,33 @@ html, body {
   background: rgba(142,142,147,.08);
   border-radius: 6px;
   padding: 2px 6px;
+}
+
+
+/* ═══════ Image Messages ═══════ */
+.msg-image {
+  max-width: 200px;
+  max-height: 200px;
+  border-radius: 10px;
+  object-fit: cover;
+  cursor: pointer;
+}
+.msg-image:active {
+  opacity: 0.8;
+}
+
+/* ═══════ AI Comment Button ═══════ */
+.moment-ai-comment-btn {
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.moment-ai-comment-btn:active {
+  opacity: 1;
+}
+.moment-ai-comment-btn:disabled {
+  opacity: 0.3;
 }

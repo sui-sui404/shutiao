@@ -1,6 +1,6 @@
 /**
  * Character — 角色管理模块
- * 角色列表 / 创建编辑 / 导入（JSON、TXT、DOCX）/ 删除 / NPC 生成器
+ * 角色列表 / 创建编辑 / 导入（JSON、TXT、DOCX）/ 删除 / NPC 生成器（AI + Manual）
  */
 import bus from "./eventBus.js";
 import {
@@ -9,14 +9,16 @@ import {
   saveCharacter,
   deleteCharacter,
   getAllMasks,
+  getActiveApi,
 } from "./db.js";
 import { createCharacter } from "./models.js";
+import { chatStream } from "./api.js";
 
 let currentCharId = null;
 let longPressTimer = null;
 let currentFilter = "all";
 let currentIsNpc = false;
-
+let npcGenAbortController = null;
 /* ───────── 注入模块样式 ───────── */
 
 function injectStyles() {
@@ -96,10 +98,91 @@ function injectStyles() {
       vertical-align: middle;
       line-height: 16px;
     }
+    .npc-mode-toggle {
+      display: flex;
+      margin-bottom: 20px;
+    }
+    .npc-mode-btn {
+      flex: 1;
+      padding: 8px 0;
+      border: 1px solid #D1D1D6;
+      background: transparent;
+      color: #636366;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .npc-mode-btn:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+    .npc-mode-btn:last-child {
+      border-radius: 0 8px 8px 0;
+      border-left: none;
+    }
+    .npc-mode-btn.active {
+      background: #1D1D1F;
+      color: #fff;
+      border-color: #1D1D1F;
+    }
+    .npc-ai-section,
+    .npc-manual-section {
+      display: none;
+    }
+    .npc-ai-section.visible,
+    .npc-manual-section.visible {
+      display: block;
+    }
+    .npc-gen-status {
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      color: #AEAEB2;
+      margin-top: 8px;
+      min-height: 18px;
+      transition: color 0.2s;
+    }
+    .npc-gen-status.error {
+      color: #FF3B30;
+    }
+    .npc-gen-status.success {
+      color: #34C759;
+    }
+    .npc-gen-preview {
+      display: none;
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(24px) saturate(150%);
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .npc-gen-preview.visible {
+      display: block;
+    }
+    .npc-gen-preview .field-label {
+      margin-top: 12px;
+    }
+    .npc-gen-preview .field-label:first-child {
+      margin-top: 0;
+    }
+    .npc-gen-spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #D1D1D6;
+      border-top-color: #1D1D1F;
+      border-radius: 50%;
+      animation: npc-spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes npc-spin {
+      to { transform: rotate(360deg); }
+    }
   `;
   document.head.appendChild(el);
 }
-
 /* ───────── 主渲染 ───────── */
 
 export async function renderCharacter(container) {
@@ -188,17 +271,58 @@ export async function renderCharacter(container) {
           <div style="width:36px"></div>
         </div>
         <div class="char-edit-form">
-          <label class="field-label">Name</label>
-          <input type="text" class="field-input" id="npc-gen-name" placeholder="NPC name" />
+          <div class="npc-mode-toggle" id="npc-mode-toggle">
+            <button class="npc-mode-btn active" data-mode="ai">AI Generate</button>
+            <button class="npc-mode-btn" data-mode="manual">Manual</button>
+          </div>
 
-          <label class="field-label">Brief Description</label>
-          <textarea class="field-input field-textarea" id="npc-gen-desc" placeholder="Short description of this NPC" rows="3"></textarea>
+          <!-- AI Generate Section -->
+          <div class="npc-ai-section visible" id="npc-ai-section">
+            <label class="field-label">Describe the NPC you want</label>
+            <textarea class="field-input field-textarea" id="npc-ai-prompt" placeholder="e.g. A gentle maid with a sharp tongue, secretly a princess in disguise" rows="4"></textarea>
+            <div class="form-actions">
+              <button class="settings-btn primary" id="npc-ai-generate-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                Generate
+              </button>
+            </div>
+            <div class="npc-gen-status" id="npc-gen-status"></div>
 
-          <label class="field-label">Relationship</label>
-          <input type="text" class="field-input" id="npc-gen-rel" placeholder="Relationship to main character" />
+            <!-- AI Preview / Edit Form -->
+            <div class="npc-gen-preview" id="npc-gen-preview">
+              <label class="field-label">Name</label>
+              <input type="text" class="field-input" id="npc-ai-name" placeholder="Generated name" />
 
-          <div class="form-actions">
-            <button class="settings-btn primary" id="npc-gen-create-btn">Create NPC</button>
+              <label class="field-label">Description</label>
+              <textarea class="field-input field-textarea" id="npc-ai-desc" rows="4"></textarea>
+
+              <label class="field-label">Personality</label>
+              <textarea class="field-input field-textarea" id="npc-ai-personality" rows="3"></textarea>
+
+              <label class="field-label">First Message</label>
+              <textarea class="field-input field-textarea" id="npc-ai-first-msg" rows="3"></textarea>
+
+              <div class="form-actions" style="margin-top:16px">
+                <button class="settings-btn primary" id="npc-ai-save-btn">Save NPC</button>
+                <button class="settings-btn" id="npc-ai-regenerate-btn">Regenerate</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Manual Section -->
+          <div class="npc-manual-section" id="npc-manual-section">
+            <label class="field-label">Name</label>
+            <input type="text" class="field-input" id="npc-gen-name" placeholder="NPC name" />
+
+            <label class="field-label">Brief Description</label>
+            <textarea class="field-input field-textarea" id="npc-gen-desc" placeholder="Short description of this NPC" rows="3"></textarea>
+
+            <label class="field-label">Relationship</label>
+            <input type="text" class="field-input" id="npc-gen-rel" placeholder="Relationship to main character" />
+
+            <div class="form-actions">
+              <button class="settings-btn primary" id="npc-gen-create-btn">Create NPC</button>
+            </div>
           </div>
         </div>
       </div>
@@ -208,7 +332,6 @@ export async function renderCharacter(container) {
   await renderCharList(container);
   bindEvents(container);
 }
-
 /* ───────── 列表渲染 ───────── */
 
 async function renderCharList(container) {
@@ -258,7 +381,6 @@ async function renderCharList(container) {
     })
     .join("");
 }
-
 /* ───────── 事件绑定 ───────── */
 
 function bindEvents(container) {
@@ -428,10 +550,74 @@ function bindEvents(container) {
 
   /* NPC Generator — 返回 */
   container.querySelector("#npc-gen-back").addEventListener("click", () => {
+    if (npcGenAbortController) {
+      npcGenAbortController.abort();
+      npcGenAbortController = null;
+    }
     closeNpcGenView(container);
   });
 
-  /* NPC Generator — 创建 */
+  /* NPC Generator — Mode Toggle */
+  container.querySelector("#npc-mode-toggle").addEventListener("click", (e) => {
+    const btn = e.target.closest(".npc-mode-btn");
+    if (!btn) return;
+    const mode = btn.dataset.mode;
+    container.querySelectorAll(".npc-mode-btn").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    const aiSection = container.querySelector("#npc-ai-section");
+    const manualSection = container.querySelector("#npc-manual-section");
+    if (mode === "ai") {
+      aiSection.classList.add("visible");
+      manualSection.classList.remove("visible");
+    } else {
+      aiSection.classList.remove("visible");
+      manualSection.classList.add("visible");
+    }
+  });
+
+  /* NPC Generator — AI Generate */
+  container.querySelector("#npc-ai-generate-btn").addEventListener("click", () => {
+    handleAiGenerate(container);
+  });
+
+  /* NPC Generator — AI Regenerate */
+  container.querySelector("#npc-ai-regenerate-btn").addEventListener("click", () => {
+    handleAiGenerate(container);
+  });
+
+  /* NPC Generator — AI Save */
+  container.querySelector("#npc-ai-save-btn").addEventListener("click", async () => {
+    const name = (container.querySelector("#npc-ai-name")?.value || "").trim();
+    const desc = (container.querySelector("#npc-ai-desc")?.value || "").trim();
+    const personality = (container.querySelector("#npc-ai-personality")?.value || "").trim();
+    const firstMsg = (container.querySelector("#npc-ai-first-msg")?.value || "").trim();
+
+    if (!name) {
+      alert("Please enter a name.");
+      return;
+    }
+
+    const descParts = [];
+    if (desc) descParts.push(desc);
+    if (personality) descParts.push("Personality: " + personality);
+    const description = descParts.join("\n\n");
+
+    const char = createCharacter({
+      name,
+      avatar: name.charAt(0) || "?",
+      description,
+      firstMessage: firstMsg,
+      personality,
+      isNpc: true,
+    });
+
+    await saveCharacter(char);
+    bus.emit("character:changed", char);
+    closeNpcGenView(container);
+    await renderCharList(container);
+  });
+
+  /* NPC Generator — Manual Create */
   container
     .querySelector("#npc-gen-create-btn")
     .addEventListener("click", async () => {
@@ -468,7 +654,89 @@ function bindEvents(container) {
       await renderCharList(container);
     });
 }
+/* ───────── AI NPC Generation ───────── */
 
+async function handleAiGenerate(container) {
+  const promptText = (container.querySelector("#npc-ai-prompt")?.value || "").trim();
+  if (!promptText) {
+    alert("Please describe the NPC you want to generate.");
+    return;
+  }
+
+  const statusEl = container.querySelector("#npc-gen-status");
+  const previewEl = container.querySelector("#npc-gen-preview");
+  const genBtn = container.querySelector("#npc-ai-generate-btn");
+
+  const api = await getActiveApi();
+  if (!api) {
+    statusEl.textContent = "No active API configured. Go to Settings first.";
+    statusEl.className = "npc-gen-status error";
+    return;
+  }
+
+  if (npcGenAbortController) {
+    npcGenAbortController.abort();
+  }
+  npcGenAbortController = new AbortController();
+
+  genBtn.disabled = true;
+  previewEl.classList.remove("visible");
+  statusEl.className = "npc-gen-status";
+  statusEl.innerHTML = `<span class="npc-gen-spinner"></span>Generating...`;
+
+  const systemPrompt = [
+    "You are an NPC generator. Based on the user's description, create a character profile.",
+    'Output ONLY valid JSON with these fields:',
+    '{"name": "...", "description": "...", "personality": "...", "firstMessage": "..."}',
+    "Do not include any other text, markdown fences, or explanation. Only the JSON object."
+  ].join("\n");
+
+  try {
+    const fullText = await chatStream(
+      [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: promptText },
+      ],
+      { temperature: 0.9 },
+      null,
+      npcGenAbortController.signal
+    );
+
+    const jsonStr = extractJson(fullText);
+    const parsed = JSON.parse(jsonStr);
+
+    container.querySelector("#npc-ai-name").value = parsed.name || "";
+    container.querySelector("#npc-ai-desc").value = parsed.description || "";
+    container.querySelector("#npc-ai-personality").value = parsed.personality || "";
+    container.querySelector("#npc-ai-first-msg").value = parsed.firstMessage || "";
+
+    previewEl.classList.add("visible");
+    statusEl.textContent = "Generated! Review and edit below, then save.";
+    statusEl.className = "npc-gen-status success";
+  } catch (err) {
+    if (err.name === "AbortError") {
+      statusEl.textContent = "Generation cancelled.";
+      statusEl.className = "npc-gen-status";
+    } else {
+      statusEl.textContent = "Error: " + err.message;
+      statusEl.className = "npc-gen-status error";
+    }
+  } finally {
+    genBtn.disabled = false;
+    npcGenAbortController = null;
+  }
+}
+
+function extractJson(text) {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+  if (fenced) return fenced[1].trim();
+  const braceStart = text.indexOf("{");
+  const braceEnd = text.lastIndexOf("}");
+  if (braceStart !== -1 && braceEnd > braceStart) {
+    return text.slice(braceStart, braceEnd + 1);
+  }
+  return text.trim();
+}
 /* ───────── 编辑视图开关 ───────── */
 
 async function openEditView(container, charId) {
@@ -511,6 +779,20 @@ function openNpcGenView(container) {
   container.querySelector("#npc-gen-name").value = "";
   container.querySelector("#npc-gen-desc").value = "";
   container.querySelector("#npc-gen-rel").value = "";
+  container.querySelector("#npc-ai-prompt").value = "";
+  container.querySelector("#npc-ai-name").value = "";
+  container.querySelector("#npc-ai-desc").value = "";
+  container.querySelector("#npc-ai-personality").value = "";
+  container.querySelector("#npc-ai-first-msg").value = "";
+  container.querySelector("#npc-gen-status").textContent = "";
+  container.querySelector("#npc-gen-status").className = "npc-gen-status";
+  container.querySelector("#npc-gen-preview").classList.remove("visible");
+
+  container.querySelectorAll(".npc-mode-btn").forEach((b) => b.classList.remove("active"));
+  container.querySelector('[data-mode="ai"]').classList.add("active");
+  container.querySelector("#npc-ai-section").classList.add("visible");
+  container.querySelector("#npc-manual-section").classList.remove("visible");
+
   container.querySelector("#char-list-view").classList.add("hidden");
   container.querySelector("#npc-gen-view").classList.remove("hidden");
 }
@@ -546,7 +828,7 @@ async function populateMaskDropdown(container, charId) {
   let selectedMaskId = "";
   if (charId) {
     const char = await getCharacter(charId);
-    if (char) selectedMaskId = char.maskId || "";
+    if (char) selectedMaskId = char.boundMaskId || char.maskId || "";
   }
   select.innerHTML =
     `<option value="">Default</option>` +
@@ -589,10 +871,9 @@ function readForm(container) {
       container.querySelector("#char-first-msg")?.value || ""
     ).trim(),
     isNpc: currentIsNpc,
-    maskId: maskVal || null,
+    boundMaskId: maskVal || null,
   };
 }
-
 /* ───────── 导入处理 ───────── */
 
 async function handleImportFile(file) {

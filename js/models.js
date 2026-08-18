@@ -126,11 +126,16 @@ export function createMask(overrides = {}) {
 export function createLoreEntry(overrides = {}) {
   return {
     id: uid(),
+    type: "keyword",
     keywords: [],
     content: "",
+    position: "after_char",
+    depth: 100,
     isEnabled: true,
     priority: 0,
+    order: 0,
     characterId: null,
+    comment: "",
     createdAt: Date.now(),
     updatedAt: Date.now(),
     ...overrides,

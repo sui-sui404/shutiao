@@ -22,6 +22,7 @@ import {
 import { createSession, createMessage } from "./models.js";
 import { chatStream } from "./api.js";
 import { getActivePresetId, getBuiltinPreset } from "./presets.js";
+import { getLoreForPrompt } from "./lore.js";
 import { buildCharacterPrompt } from "./character.js";
 
 /* ── 颜文字/表情 快捷输入 ── */
@@ -61,7 +62,7 @@ export async function renderChat(container) {
         <!-- Contacts View -->
         <div class="chat-contacts-view hidden" id="chat-contacts-view">
           <div class="contacts-header">
-            <span class="contacts-title">联系人</span>
+            <span class="contacts-title">Contacts</span>
             <button class="chat-new-btn" id="add-contact-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
           </div>
           <div class="contacts-list" id="contacts-list"><div class="empty-hint">还没有联系人，点 + 创建角色</div></div>
@@ -70,7 +71,7 @@ export async function renderChat(container) {
                 <!-- Moments View -->
         <div class="chat-moments-view hidden" id="chat-moments-view">
           <div class="contacts-header">
-            <span class="contacts-title">Moments</span>
+            <span class="contacts-title" style="visibility:hidden">Moments</span>
             <button class="chat-new-btn" id="moments-camera-btn">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             </button>
@@ -172,19 +173,19 @@ export async function renderChat(container) {
         <div class="chat-bottom-tabs">
           <button class="chat-tab active" data-tab="chats">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            <span>聊天</span>
+            <span>Chats</span>
           </button>
           <button class="chat-tab" data-tab="contacts">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span>联系人</span>
+            <span>Contacts</span>
           </button>
           <button class="chat-tab" data-tab="moments">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            <span>朋友圈</span>
+            <span>Moments</span>
           </button>
           <button class="chat-tab" data-tab="me">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>我</span>
+            <span>Me</span>
           </button>
         </div>
       </div>
@@ -193,7 +194,7 @@ export async function renderChat(container) {
       <div class="char-picker-overlay hidden" id="char-picker-overlay">
         <div class="char-picker-sheet">
           <div class="char-picker-header">
-            <span class="char-picker-title">选择角色</span>
+            <span class="char-picker-title">Select Character</span>
             <button class="modal-close" id="char-picker-close">
               <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -793,6 +794,22 @@ async function buildSystemPrompt(session) {
     }
   }
 
+  
+  // Inject world book / lore entries
+  try {
+    const history = await getSessionMessages(session.id || activeSessionId);
+    const loreEntries = await getLoreForPrompt(session.characterId, history);
+    for (const entry of loreEntries) {
+      if (entry.position === "before_char") {
+        parts.unshift(entry.content);
+      } else {
+        parts.push(entry.content);
+      }
+    }
+  } catch (e) {
+    console.warn("[Lore] Failed to load lore entries:", e);
+  }
+
   return parts.join("\n\n") || null;
 }
 
@@ -1380,7 +1397,7 @@ async function renderContacts(container) {
     if (!card) return;
     const charId = card.dataset.charid;
     const char = await getCharacter(charId);
-    const session = createSession({ title: char?.name || "New Chat", characterId: charId, mode: "character" });
+    const session = createSession({ title: char?.name || "New Chat", characterId: charId, maskId: char?.boundMaskId || char?.maskId || null, mode: "character" });
     await saveSession(session);
     if (char?.firstMessage) {
       const firstMsg = createMessage({ sessionId: session.id, role: "assistant", content: char.firstMessage });
@@ -1457,6 +1474,7 @@ async function renderMomentsFeed(container) {
       '<div class="moment-actions">' +
         '<button class="moment-like-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>' +
         '<button class="moment-comment-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></button>' +
+        '<button class="moment-ai-comment-btn" data-momentid="' + m.id + '" title="Ask characters to comment"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#636366" stroke-width="1.4"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg></button>' +
         '<button class="moment-delete-btn" data-momentid="' + m.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#AEAEB2" stroke-width="1.4"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
       '</div>' +
       commentsHtml +
@@ -1475,6 +1493,40 @@ async function renderMomentsFeed(container) {
       moment.comments.push({ name: "Me", text: text.trim(), time: Date.now() });
       await saveMoment(moment);
       await renderMomentsFeed(container);
+    });
+  });
+
+  feed.querySelectorAll(".moment-ai-comment-btn").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const mid = btn.dataset.momentid;
+      const moment = await getMoment(mid);
+      if (!moment) return;
+      const chars = await getAllCharacters();
+      if (chars.length === 0) { alert("No characters to comment"); return; }
+      // Let each character comment using AI
+      btn.disabled = true;
+      btn.textContent = "...";
+      try {
+        const api = await getActiveApi();
+        if (!api) { alert("Configure API first"); return; }
+        for (const char of chars.slice(0, 3)) {
+          const prompt = [
+            { role: "system", content: "You are " + (char.name || "a character") + ". " + (char.description || char.systemPrompt || "") + "\nThe user posted on social media: \"" + (moment.content || "") + "\"\nWrite a short, in-character comment (1-2 sentences). Reply ONLY with the comment text." },
+            { role: "user", content: "Please comment on this post." }
+          ];
+          try {
+            const reply = await chatStream(prompt, {}, null, null);
+            if (!moment.comments) moment.comments = [];
+            moment.comments.push({ name: char.name, text: reply.trim(), time: Date.now() });
+          } catch(e) { console.error("Comment gen failed for " + char.name, e); }
+        }
+        await saveMoment(moment);
+        await renderMomentsFeed(container);
+      } catch(e) {
+        console.error("AI comment failed", e);
+      } finally {
+        btn.disabled = false;
+      }
     });
   });
 
