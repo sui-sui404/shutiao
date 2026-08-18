@@ -2168,8 +2168,32 @@ html, body {
 
 .moments-cover {
   position: relative;
-  height: 150px;
+  height: 200px;
   background: linear-gradient(135deg, #D1D1D6, #C7C7CC);
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+}
+
+.moments-camera-float {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  background: rgba(0,0,0,.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+}
+.moments-camera-float:active {
+  background: rgba(0,0,0,.5);
 }
 
 .moments-cover-info {
@@ -3126,27 +3150,12 @@ html, body {
   background: rgba(0,0,0,.06);
 }
 
-/* ── Moments Cover Upload Hint ── */
-.moments-cover {
-  cursor: pointer;
-  position: relative;
-}
-.moments-cover::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: transparent;
-  transition: background .2s;
-}
-.moments-cover:active::after {
-  background: rgba(0,0,0,.08);
-}
 
 /* ── Moments FAB Button ── */
 .moments-fab {
-  position: fixed;
-  bottom: 80px;
-  right: 20px;
+  position: absolute;
+  bottom: 70px;
+  right: 16px;
   width: 50px;
   height: 50px;
   border-radius: 50%;
@@ -3312,8 +3321,7 @@ html, body {
   opacity: 0;
   transition: opacity .2s;
 }
-.moment-comment:hover .comment-actions,
-.moment-comment:active .comment-actions {
+.moment-comment .comment-actions {
   opacity: 1;
 }
 .comment-del-btn, .comment-reroll-btn {

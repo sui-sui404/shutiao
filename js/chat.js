@@ -70,27 +70,20 @@ export async function renderChat(container) {
 
                 <!-- Moments View -->
         <div class="chat-moments-view hidden" id="chat-moments-view">
-          <div class="contacts-header">
-            <span class="contacts-title" style="visibility:hidden">朋友圈</span>
-            <button class="chat-new-btn" id="moments-camera-btn">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            </button>
-          </div>
           <div class="moments-scroll">
-            <div class="moments-cover">
+            <div class="moments-cover" id="moments-cover-area">
+              <button class="moments-camera-float" id="moments-camera-btn">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.6"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </button>
               <div class="moments-cover-info">
-                <span class="moments-cover-name">User</span>
+                <span class="moments-cover-name" id="moments-cover-name">User</span>
                 <div class="moments-cover-avatar">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.4"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </div>
               </div>
             </div>
-            <!-- FAB Post Button (bottom-right) -->
-            <div class="moments-fab" id="moments-fab-btn">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            </div>
             <div class="moments-feed" id="moments-feed">
-              <div class="empty-hint" style="padding:40px 0;text-align:center">\u8fd8\u6ca1\u6709\u52a8\u6001</div>
+              <div class="empty-hint" style="padding:40px 0;text-align:center">还没有动态</div>
             </div>
           </div>
         </div>
@@ -153,7 +146,12 @@ export async function renderChat(container) {
               </div>
             </div>
           
-      <!-- Full-page Post Overlay (WeChat style) -->
+      <!-- FAB Post Button -->
+          <div class="moments-fab" id="moments-fab-btn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+
+          <!-- Full-page Post Overlay (WeChat style) -->
       <div class="moments-post-page hidden" id="moments-post-page">
         <div class="moments-post-topbar">
           <button class="moments-post-cancel" id="mpp-cancel">取消</button>
@@ -485,7 +483,8 @@ export async function renderChat(container) {
   let mppImages = [];
 
   // Open post page from camera btn
-  container.querySelector("#moments-camera-btn")?.addEventListener("click", () => {
+  container.querySelector("#moments-camera-btn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
     openPostPage(container);
   });
 
@@ -582,8 +581,8 @@ export async function renderChat(container) {
 
   // Moments cover background upload (click on the cover area, NOT the info section)
   container.querySelector(".moments-cover")?.addEventListener("click", (e) => {
-    // Don't trigger if clicking on the avatar/name area
-    if (e.target.closest(".moments-cover-info")) return;
+    // Don't trigger if clicking camera button or avatar/name area
+    if (e.target.closest(".moments-camera-float") || e.target.closest(".moments-cover-info")) return;
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
@@ -612,6 +611,13 @@ export async function renderChat(container) {
       cover.style.backgroundSize = "cover";
       cover.style.backgroundPosition = "center";
     }
+  }
+
+  // Restore user nickname on cover
+  const savedNickname = localStorage.getItem("user-nickname");
+  if (savedNickname) {
+    const coverName = container.querySelector("#moments-cover-name");
+    if (coverName) coverName.textContent = savedNickname;
   }
 
   // Initial moments render
@@ -1641,7 +1647,7 @@ async function renderMomentsFeed(container) {
   const feed = container.querySelector("#moments-feed");
   const moments = await getAllMoments();
   if (moments.length === 0) {
-    feed.innerHTML = '<div class="empty-hint" style="padding:40px 0;text-align:center">\u8fd8\u6ca1\u6709\u52a8\u6001</div>';
+    feed.innerHTML = '<div class="empty-hint" style="padding:40px 0;text-align:center">还没有动态</div>';
     return;
   }
   feed.innerHTML = moments.map(m => {
