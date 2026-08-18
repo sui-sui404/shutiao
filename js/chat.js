@@ -86,7 +86,6 @@ export async function renderChat(container) {
               <div class="empty-hint" style="padding:40px 0;text-align:center">还没有动态</div>
             </div>
           </div>
-          </div>
 
           <!-- FAB Post Button -->
           <div class="moments-fab" id="moments-fab-btn">
