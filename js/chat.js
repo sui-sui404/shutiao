@@ -623,9 +623,8 @@ export async function renderChat(container) {
         }
       }
 
-      // Generate posts for standalone NPCs (checked but parent not checked)
+      // Generate posts for ALL checked NPCs
       for (const npcInfo of checkedNpcs) {
-        if (checkedChars.some(c => c.id === npcInfo.parentId)) continue; // parent already handled
         const npc = await getCharacter(npcInfo.id);
         if (!npc) continue;
         for (let i = 0; i < count; i++) {

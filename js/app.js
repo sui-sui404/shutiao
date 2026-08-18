@@ -117,7 +117,7 @@ async function openModal(appName) {
   const body = document.getElementById("modal-body");
   if (!modal) return;
 
-  title.textContent = appName;
+  title.textContent = appName === "Lore" ? "\u4e16\u754c\u4e66" : appName;
   body.innerHTML = "";
 
   if (appName === "Settings") {
