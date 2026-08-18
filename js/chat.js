@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Chat — 聊天核心模块
  * 消息气泡 / 流式回复 / 会话管理 / Markdown / 消息操作
  */
@@ -18,8 +18,12 @@ import {
   getCharacter,
   getPreset,
   getAllCharacters,
+  saveMoment,
+  getAllMoments,
+  deleteMoment,
+  getMoment,
 } from "./db.js";
-import { createSession, createMessage } from "./models.js";
+import { createSession, createMessage, createMoment, createMask, createSticker } from "./models.js";
 import { chatStream } from "./api.js";
 import { getActivePresetId, getBuiltinPreset } from "./presets.js";
 import { getLoreForPrompt } from "./lore.js";
