@@ -485,7 +485,7 @@ function bindEvents(container) {
   /* NPC Generator 按钮 */
   container
     .querySelector("#char-npc-gen-btn")
-    .addEventListener("click", () => {
+    .addEventListener("click", async () => {
       await openNpcGenView(container);
     });
 
